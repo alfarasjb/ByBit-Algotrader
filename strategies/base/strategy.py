@@ -32,13 +32,14 @@ class Strategy:
 
     def info(self) -> None:
         # Prints symbol info 
-        print(f"Symbol: {self.trade_config.symbol} Interval: {self.trade_config.interval} Channel: {self.trade_config.channel}")
+        self.log(f"Instrument Configuration - Symbol: {self.trade_config.symbol} Interval: {self.trade_config.interval} Channel: {self.trade_config.channel}")
 
         
 
-    def send_market_order(self, side:Side) -> None:
+    def send_market_order(self, side:Side) -> bool:
         # Sends market order 
         print(f"Send Market Order. Side: {side.name}") 
+        return True
         
     def close_opposite_order(self, side:Side) -> None:
         # Closes order opposite to specified order type

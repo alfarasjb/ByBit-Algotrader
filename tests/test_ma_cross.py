@@ -1,0 +1,66 @@
+
+
+from strategies import MACross, MAType 
+from configs import TradeConfig 
+from templates import Side
+
+import unittest 
+import numpy as np
+import pandas as pd
+
+class TestMACrossStrategy(unittest.TestCase): 
+
+    def setUp(self): 
+        long_data = {"Close" : np.arange(0,150)}
+        self.long_price_series = pd.DataFrame(long_data)
+
+        self.short_price_series = self.long_price_series[::-1].reset_index(drop=True)
+
+        self.trade_config = TradeConfig(symbol="BTCUSDT", interval=1, channel='linear')
+        self.strategy = MACross(
+            config=self.trade_config,
+            fast_ma_period=20,
+            slow_ma_period=100, 
+            ma_kind=MAType.SIMPLE 
+        )
+        
+    def test_side(self): 
+        
+        # prices of moving averages
+        # test short 
+        fast_ma = 10.50 
+        slow_ma = 12.50 
+
+        side_result = self.strategy.get_side(fast = fast_ma, slow = slow_ma)
+        self.assertEqual(side_result, Side.SHORT)
+
+        # test long 
+        fast_ma = 12.50 
+        slow_ma = 10.50 
+
+        side_result = self.strategy.get_side(fast=fast_ma, slow=slow_ma)
+        self.assertEqual(side_result, Side.LONG)
+
+        # test neutral 
+        fast_ma = slow_ma = 10.50 
+        side_result = self.strategy.get_side(fast=fast_ma, slow=slow_ma)
+        self.assertEqual(side_result, Side.NEUTRAL)
+
+    def test_long_crossover(self):
+        long_df = self.strategy.attach_indicators(self.long_price_series)     
+        last_row = long_df.index == (len(long_df)-1) 
+        long_df.loc[last_row, ['fast_ma','side']] = [0, -1]
+        crossover = self.strategy.crossover(long_df)
+        self.assertTrue(crossover)
+
+    def test_short_crossover(self):
+        
+        short_df = self.strategy.attach_indicators(self.short_price_series)
+        last_row = short_df.index == (len(short_df)-1)
+        short_df.loc[last_row, ['fast_ma','side']] = [100000, 1]
+        crossover = self.strategy.crossover(short_df)
+        self.assertTrue(crossover)
+
+ 
+        
+    

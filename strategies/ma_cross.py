@@ -42,51 +42,7 @@ class MACross(Strategy):
 
 
     # -------------------- Private Methods -------------------- #   
-     
-    @staticmethod
-    def __get_side(fast:float, slow:float) -> Side: 
-        """
-        Determines side based on trade logic, and moving average values. 
-
-        Parameters
-        ----------
-            fast: float 
-                fast moving average 
-            slow: float 
-                slow moving average
-        """
-        
-        if fast > slow: 
-            return Side.LONG 
-        if fast < slow:
-            return Side.SHORT 
-        return Side.NEUTRAL
     
-    def __crossover(self, data: pd.DataFrame) -> bool: 
-        """
-        Determines if MA crossover is present. 
-
-        Parameters
-        ----------
-            data: pd.DataFrame
-                data to process 
-        """
-        last, prev = data.iloc[-1], data.iloc[-2]
-
-        if last.isna().sum() > 0 or prev.isna().sum() > 0: 
-            self.log("Error. Null Values found.")
-            return None                    
-        
-        
-        last_side = last['side'].item()
-        prev_side = prev['side'].item()
-
-        if last_side == 0 or prev_side == 0:
-            return None 
-        
-        return last_side != prev_side 
-
-
     def __fetch(self, elements:int) -> pd.DataFrame:
         """
         Fetches data from ByBit 
@@ -124,10 +80,72 @@ class MACross(Strategy):
         
         return df 
     
+
+    def __ma(self, data:pd.Series, length:int) -> pd.Series:
+        """ 
+        Returns a pandas Series based on specified averaging type, and length. 
+
+        Parameters
+        ----------
+            data: pd.Series 
+                pandas Series of closing prices 
+            
+            length: int 
+                rolling window for averaging 
+        """
+        # Returns Moving average based on input type: Simple or Exponential 
+        if self.ma_kind == MAType.SIMPLE:
+            return data.rolling(length).mean()
+        if self.ma_kind == MAType.EXPONENTIAL:
+            return data.ewm(span=length).mean()
+        
+
+    @staticmethod
+    def get_side(fast:float, slow:float) -> Side: 
+        """
+        Determines side based on trade logic, and moving average values. 
+
+        Parameters
+        ----------
+            fast: float 
+                fast moving average 
+            slow: float 
+                slow moving average
+        """
+        
+        if fast > slow: 
+            return Side.LONG 
+        if fast < slow:
+            return Side.SHORT 
+        return Side.NEUTRAL
     
 
+    def crossover(self, data: pd.DataFrame) -> bool: 
+        """
+        Determines if MA crossover is present. 
 
-    def __attach_indicators(self, data:pd.DataFrame) -> pd.DataFrame:
+        Parameters
+        ----------
+            data: pd.DataFrame
+                data to process 
+        """
+        last, prev = data.iloc[-1], data.iloc[-2]
+
+        if last.isna().sum() > 0 or prev.isna().sum() > 0: 
+            self.log("Error. Null Values found.")
+            return None                    
+        
+        
+        last_side = last['side'].item()
+        prev_side = prev['side'].item()
+
+        if last_side == 0 or prev_side == 0:
+            return None 
+        
+        return last_side != prev_side 
+
+
+    def attach_indicators(self, data:pd.DataFrame) -> pd.DataFrame:
         """
         Attaches indicators and generates side 
 
@@ -151,28 +169,7 @@ class MACross(Strategy):
         return data
 
 
-
-    def __ma(self, data:pd.Series, length:int) -> pd.Series:
-        """ 
-        Returns a pandas Series based on specified averaging type, and length. 
-
-        Parameters
-        ----------
-            data: pd.Series 
-                pandas Series of closing prices 
-            
-            length: int 
-                rolling window for averaging 
-        """
-        # Returns Moving average based on input type: Simple or Exponential 
-        if self.ma_kind == MAType.SIMPLE:
-            return data.rolling(length).mean()
-        if self.ma_kind == MAType.EXPONENTIAL:
-            return data.ewm(span=length).mean()
-
-    
-
-    def stage(self, candle: Candles):
+    def stage(self, candle: Candles) -> bool:
         """
         Processes main trade logic 
 
@@ -189,10 +186,10 @@ class MACross(Strategy):
         df = self.__fetch(candles_to_fetch)
 
         # Attaches indicators based on input values 
-        df = self.__attach_indicators(df)
+        df = self.attach_indicators(df)
 
         # Check for crossover 
-        cross = self.__crossover(df)
+        cross = self.crossover(df)
 
         # Gets last value 
         last = df.iloc[-1]
@@ -200,16 +197,20 @@ class MACross(Strategy):
         slow_ma = last['slow_ma'].item()
 
         # Determines side: Long or Short 
-        side = self.__get_side(fast_ma, slow_ma) 
+        side = self.get_side(fast_ma, slow_ma) 
 
         # General Logging 
         info = candle.info() + f" Crossover: {cross} Fast: {fast_ma:.2f} Slow: {slow_ma:.2f} Side: {side.name}"
         self.log(info)
 
+        trade_result = False 
         if cross: 
             # Sends trade orders if MA Crossover is found
             self.close_all_orders()
-            self.send_market_order()
 
+            # Returns true if order was sent successfully. 
+            trade_result = self.send_market_order()
+
+        return trade_result 
 
     

@@ -65,10 +65,11 @@ if __name__ == "__main__":
     # ----- Initialization ----- # 
     format = "%(asctime)s: %(message)s"
     logging.basicConfig(format = format, level = logging.INFO, datefmt="%H:%M:%S")
-    logging.info(" ==========================================  ")
-    logging.info(" ======= Launching ByBit-Algotrader ======= ")
-    logging.info(" ==========================================  ")
-
+    print()
+    print(" ==========================================  ")
+    print(" ======= Launching ByBit-Algotrader ======= ")
+    print(" ==========================================  ")
+    print()
     # ----- Sets Trade Configuration ----- #
     trade_config = configs.TradeConfig(symbol="BTCUSDT", interval=1, channel='linear')
     
