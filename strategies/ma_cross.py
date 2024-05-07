@@ -62,8 +62,7 @@ class MACross(Strategy):
             return Side.SHORT 
         return Side.NEUTRAL
     
-    @staticmethod
-    def __crossover(data: pd.DataFrame) -> bool: 
+    def __crossover(self, data: pd.DataFrame) -> bool: 
         """
         Determines if MA crossover is present. 
 
@@ -72,11 +71,20 @@ class MACross(Strategy):
             data: pd.DataFrame
                 data to process 
         """
-        last, prev = data.iloc[-1]['side'].item(), data.iloc[-2]['side'].item() 
-        if last == 0 or prev == 0:
+        last, prev = data.iloc[-1], data.iloc[-2]
+
+        if last.isna().sum() > 0 or prev.isna().sum() > 0: 
+            self.log("Error. Null Values found.")
+            return None                    
+        
+        
+        last_side = last['side'].item()
+        prev_side = prev['side'].item()
+
+        if last_side == 0 or prev_side == 0:
             return None 
         
-        return last != prev 
+        return last_side != prev_side 
 
 
     def __fetch(self, elements:int) -> pd.DataFrame:
@@ -177,7 +185,8 @@ class MACross(Strategy):
         """
         
         # Fetch data to calculate indicators 
-        df = self.__fetch(self.slow_ma_period)
+        candles_to_fetch = self.slow_ma_period * 2
+        df = self.__fetch(candles_to_fetch)
 
         # Attaches indicators based on input values 
         df = self.__attach_indicators(df)
