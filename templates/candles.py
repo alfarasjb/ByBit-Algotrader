@@ -3,7 +3,10 @@ from dataclasses import dataclass
 
 @dataclass 
 class Candles:
-    symbol:str 
+    """
+    Contains information on latest ticker values 
+    """
+    symbol:str  
     start: int 
     end: int 
     interval: str 
