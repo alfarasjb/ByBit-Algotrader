@@ -1,12 +1,12 @@
 from pybit.unified_trading import WebSocket, HTTP 
-
 from time import sleep 
 import configs 
 import templates
 import strategies
+import keyboard
 
 import logging 
-
+import sys, os 
 
 class TradeMain:
 
@@ -53,13 +53,69 @@ class TradeMain:
         """
         Subscribes to Kline Stream 
         """
-        self.ws.kline_stream(
-            interval=self.config.interval, 
-            symbol=self.config.symbol, 
-            callback=self.handler
-        )
+        try:
+            self.ws.kline_stream(
+                interval=self.config.interval, 
+                symbol=self.config.symbol, 
+                callback=self.handler
+            )
+        except self.ws.WebSocketConnectionClosedException as e: 
+            logging.info(f"WebSocket Connection has Ended. Exception: {e}")
+        
+    def terminate(self):
+        """
+        Ends Connection
+        """
+        
+        self.ws.exit()
+        
 
+class Root:
+    ## Configuration goes here 
+    def __init__(self): 
+        pass 
 
+    def select_strategy(self) -> list: 
+        
+        strategies_directory = 'strategies'
+        contents = os.listdir(strategies_directory)
+        directories=list()
+        strategies=list()
+        for c in contents:
+            path = os.path.join(strategies_directory, c)
+            if not os.path.isdir(path):
+                continue
+            if path.__contains__('__'):
+                continue
+            directories.append(path)
+            strategies.append(c)
+                
+        return directories
+
+    def select_strategy_config(self, directory:str=None) -> str:
+        config_folder = 'cfg'
+        directory = self.select_strategy()[2] if directory is None else directory 
+        configs_directory = os.path.join(directory, config_folder)
+        if not os.path.isdir(configs_directory):
+            return None 
+        
+        contents = os.listdir(configs_directory) 
+        selected = os.path.join(configs_directory, contents[0])
+        
+        return selected 
+    
+    def process_config_ini(self, path:str) -> dict:
+
+        config_dict=dict()
+        with open(path) as f: 
+            for line in f: 
+                if not line.__contains__('='):
+                    continue 
+                key, value = line.split('=')
+                config_dict[key] = value.rstrip() 
+
+        return config_dict
+                
 if __name__ == "__main__": 
 
     # ----- Initialization ----- # 
@@ -70,16 +126,27 @@ if __name__ == "__main__":
     print(" ======= Launching ByBit-Algotrader ======= ")
     print(" ==========================================  ")
     print()
+
+    # ----- Creates Root App ----- #
+    root = Root()
+
     # ----- Sets Trade Configuration ----- #
     trade_config = configs.TradeConfig(symbol="BTCUSDT", interval=1, channel='linear')
+
+    # ----- Sets Strategy Configuration ----- # 
+    config_dict = root.process_config_ini(root.select_strategy_config())
     
     # ----- Calls a strategy ----- # 
+    #strategy = strategies.MACross(
+    #    trade_config,
+    #    fast_ma_period=20, 
+    #    slow_ma_period=100,
+    #    ma_kind=strategies.MAType.SIMPLE
+    #) 
     strategy = strategies.MACross(
-        trade_config,
-        fast_ma_period=20, 
-        slow_ma_period=100,
-        ma_kind=strategies.MAType.SIMPLE
-    ) 
+        config=trade_config,
+        strategy_config=config_dict
+    )
 
     # ----- Creates instance of trade object ----- # 
     trade = TradeMain(
@@ -90,5 +157,8 @@ if __name__ == "__main__":
     # ----- Runs trading operations ----- # 
     trade.run()
 
+
     while True:
-        sleep(1)
+        if keyboard.read_key() == 'esc':
+            #trade.terminate()
+            pass
