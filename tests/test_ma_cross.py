@@ -1,4 +1,6 @@
-
+"""
+Tests the functions in the MACross module. 
+"""
 
 from strategies import MACross, MAType 
 from configs import TradeConfig 
@@ -9,8 +11,13 @@ import numpy as np
 import pandas as pd
 
 class TestMACrossStrategy(unittest.TestCase): 
-
+    """
+    Tests the Moving Average Crossover strategy 
+    """
     def setUp(self): 
+        """
+        Sets up the parameters for testing 
+        """
         long_data = {"Close" : np.arange(0,150)}
         self.long_price_series = pd.DataFrame(long_data)
 
@@ -26,7 +33,9 @@ class TestMACrossStrategy(unittest.TestCase):
 
         
     def test_side(self): 
-        
+        """
+        Unit tests for the get_side() function
+        """
         # prices of moving averages
         # test short 
         fast_ma = 10.50 
@@ -48,6 +57,9 @@ class TestMACrossStrategy(unittest.TestCase):
         self.assertEqual(side_result, Side.NEUTRAL)
 
     def test_long_crossover(self):
+        """
+        Unit tests for determining crossovers
+        """
         long_df = self.strategy.attach_indicators(self.long_price_series)     
         last_row = long_df.index == (len(long_df)-1) 
         long_df.loc[last_row, ['fast_ma','side']] = [0, -1]
@@ -55,7 +67,9 @@ class TestMACrossStrategy(unittest.TestCase):
         self.assertTrue(crossover)
 
     def test_short_crossover(self):
-        
+        """
+        Unit tests for determining crossovers
+        """
         short_df = self.strategy.attach_indicators(self.short_price_series)
         last_row = short_df.index == (len(short_df)-1)
         short_df.loc[last_row, ['fast_ma','side']] = [100000, 1]

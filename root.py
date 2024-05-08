@@ -4,11 +4,21 @@ import configs
 import templates
 import strategies
 import keyboard
+import generic 
 
 import logging 
 import sys, os 
 
 class TradeMain:
+    """ 
+    Main execution class. 
+
+    Handles websocket connection and data from ByBit.
+
+    Triggers candle interval events. 
+
+    Equivalent of MQL OnTick() function. 
+    """
 
     def __init__(self, config:configs.TradeConfig, callback):
 
@@ -27,7 +37,7 @@ class TradeMain:
         Parameters
         ----------
             contents: dict 
-                received contents from bybit
+                Received JSON contents from bybit
         """
         data = contents['data'][0]
         candles = templates.Candles(self.config.symbol, **data)
@@ -43,7 +53,7 @@ class TradeMain:
         Parameters
         ----------
             candle: templates.Candles
-                latest ticker information
+                Contains the latest ticker information
         """
         # Callback function is the Stage function from each strategy 
         self.callback(candle)
@@ -64,7 +74,7 @@ class TradeMain:
         
     def terminate(self):
         """
-        Ends Connection
+        Ends connection with WebSocket. Triggered by keyboard input.
         """
         
         self.ws.exit()
@@ -130,6 +140,9 @@ if __name__ == "__main__":
 
     # ----- Creates Root App ----- #
     root = Root()
+
+    # ----- Select Strategy ----- # 
+    
 
     # ----- Sets Trade Configuration ----- #
     trade_config = configs.TradeConfig(symbol="BTCUSDT", interval=1, channel='linear')
