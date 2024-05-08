@@ -17,12 +17,13 @@ class TestMACrossStrategy(unittest.TestCase):
         self.short_price_series = self.long_price_series[::-1].reset_index(drop=True)
 
         self.trade_config = TradeConfig(symbol="BTCUSDT", interval=1, channel='linear')
+        self.strategy_config_dict = {"fast_ma_period" : "20", "slow_ma_period" : "100", "ma_kind" : "SIMPLE"} 
         self.strategy = MACross(
             config=self.trade_config,
-            fast_ma_period=20,
-            slow_ma_period=100, 
-            ma_kind=MAType.SIMPLE 
+            strategy_config=self.strategy_config_dict
         )
+
+
         
     def test_side(self): 
         

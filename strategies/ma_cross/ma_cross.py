@@ -3,29 +3,36 @@ from templates import *
 from configs import *
 import pandas as pd 
 from enum import Enum
-from .base import *
+from ..base import *
+from dataclasses import dataclass
 
 
 class MAType(Enum):
     SIMPLE = 1 # Simple Moving Average
     EXPONENTIAL = 2 # Exponential Moving Average
 
+@dataclass
+class MACrossConfigs: 
+    fast_ma_period:int
+    slow_ma_period:int 
+    ma_kind: MAType
+
 class MACross(Strategy):
     
     def __init__(
             self, 
             config:TradeConfig, 
-            fast_ma_period:int, 
-            slow_ma_period: int,
-            ma_kind: MAType
+            #fast_ma_period:int, 
+            #slow_ma_period: int,
+            #ma_kind: MAType
+            strategy_config:dict
         ):
         
         super().__init__("MA Crossover",config)
 
         # -------------------- Initializing member variables -------------------- #  
-        self.fast_ma_period = fast_ma_period 
-        self.slow_ma_period = slow_ma_period 
-        self.ma_kind = ma_kind
+        self.strategy = MACrossConfigs(**strategy_config)
+        self.fast_ma_period, self.slow_ma_period, self.ma_kind = self.__set_strategy_configs(self.strategy)
 
         # -------------------- Validate Inputs -------------------- #  
         # Fast ma must be less than slow ma 
@@ -42,6 +49,43 @@ class MACross(Strategy):
 
 
     # -------------------- Private Methods -------------------- #   
+    def __set_strategy_configs(self, strategy:MACrossConfigs): 
+        """
+        Sets strategy configuration given Config Class 
+        """
+        try:
+            fast = int(strategy.fast_ma_period)
+            slow = int(strategy.slow_ma_period)
+            ma_kind = self.__select_ma_type(strategy.ma_kind)
+
+            return fast, slow, ma_kind
+        
+        except TypeError as t:
+            print(t)
+        except ValueError as v:
+            print(v)
+
+        # If invalid, set hard-coded defaults
+        print("Invalid config file. Setting Defaults.")
+        fast = 20
+        slow = 100 
+        ma_kind = MAType.SIMPLE 
+
+        return fast, slow, ma_kind
+
+    
+    @staticmethod
+    def __select_ma_type(kind:str) -> MAType: 
+        """
+        Selects MAType based on config file
+        """
+        if kind == MAType.SIMPLE.name: 
+            return MAType.SIMPLE 
+        if kind == MAType.EXPONENTIAL.name:
+            return MAType.EXPONENTIAL 
+        else:
+            raise ValueError("Incorrect value for MA Type. Use: SIMPLE or EXPONENTIAL")
+        
     
     def __fetch(self, elements:int) -> pd.DataFrame:
         """
@@ -213,4 +257,5 @@ class MACross(Strategy):
 
         return trade_result 
 
+    
     
