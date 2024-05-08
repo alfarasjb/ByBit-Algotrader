@@ -225,6 +225,7 @@ class MACross(Strategy):
                 contains latest ticker information 
         """
         
+        
         # Fetch data to calculate indicators 
         candles_to_fetch = self.slow_ma_period * 2
         df = self.__fetch(candles_to_fetch)
@@ -253,7 +254,7 @@ class MACross(Strategy):
             self.close_all_orders()
 
             # Returns true if order was sent successfully. 
-            trade_result = self.send_market_order()
+            trade_result = self.send_market_order(side)
 
         return trade_result 
 
