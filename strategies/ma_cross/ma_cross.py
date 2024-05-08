@@ -87,43 +87,6 @@ class MACross(Strategy):
             raise ValueError("Incorrect value for MA Type. Use: SIMPLE or EXPONENTIAL")
         
     
-    def __fetch(self, elements:int) -> pd.DataFrame:
-        """
-        Fetches data from ByBit 
-
-        Parameters
-        ----------
-            elements: int 
-                number of candles to fetch 
-        """
-        response = None 
-        try: 
-            response = self.session.get_kline(
-                category=self.trade_config.channel, 
-                symbol=self.trade_config.symbol,
-                interval=self.trade_config.interval,
-                limit=elements+1
-            )
-        except Exception as e: 
-            self.log(f"Error: {e}")
-            return None 
-        
-
-        df = pd.DataFrame(response['result']['list'])
-        
-        df.columns = ['Time', 'Open', 'High', 'Low', 'Close', 'Volume', 'Turnover']
-        df = df.set_index('Time',drop=True)
-        # convert timestamp to datetime
-        df.index = pd.to_datetime(df.index.astype('int64'), unit='ms')
-        # sets values to float 
-        df = df.astype(float)
-        # inverts the dataframe 
-        df = df[::-1] 
-        # excludes last row since this is fresh candle, and is still open 
-        df = df[:-1]  
-        
-        return df 
-    
 
     def __ma(self, data:pd.Series, length:int) -> pd.Series:
         """ 
@@ -228,7 +191,7 @@ class MACross(Strategy):
         
         # Fetch data to calculate indicators 
         candles_to_fetch = self.slow_ma_period * 2
-        df = self.__fetch(candles_to_fetch)
+        df = self.fetch(candles_to_fetch)
 
         # Attaches indicators based on input values 
         df = self.attach_indicators(df)

@@ -94,7 +94,7 @@ class Root:
 
     def select_strategy_config(self, directory:str=None) -> str:
         config_folder = 'cfg'
-        directory = self.select_strategy()[2] if directory is None else directory 
+        directory = self.select_strategy()[4] if directory is None else directory 
         configs_directory = os.path.join(directory, config_folder)
         if not os.path.isdir(configs_directory):
             return None 
@@ -113,6 +113,7 @@ class Root:
                     continue 
                 key, value = line.split('=')
                 config_dict[key] = value.rstrip() 
+        
 
         return config_dict
                 
@@ -143,7 +144,11 @@ if __name__ == "__main__":
     #    slow_ma_period=100,
     #    ma_kind=strategies.MAType.SIMPLE
     #) 
-    strategy = strategies.MACross(
+    #strategy = strategies.MACross(
+    #    config=trade_config,
+    #    strategy_config=config_dict
+    #)
+    strategy = strategies.RSI(
         config=trade_config,
         strategy_config=config_dict
     )

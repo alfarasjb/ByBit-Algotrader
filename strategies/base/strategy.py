@@ -2,7 +2,7 @@ from templates import *
 from configs import *
 import logging 
 import os 
-
+import pandas as pd
 from pybit.unified_trading import HTTP 
 
 _log = logging.getLogger(__name__)
@@ -99,7 +99,7 @@ class Strategy:
         except Exception as e:
             self.log(f"Order Send Failed. {e}")
             return False
-
+        
         return True
         
     def close_opposite_order(self, side:Side) -> None:
@@ -135,3 +135,36 @@ class Strategy:
             return "Limit"
         else: 
             return ""
+
+    def fetch(self, elements:int) -> pd.DataFrame: 
+        """
+        Fetches data from ByBit 
+
+        """
+
+        response = None 
+        try: 
+            response = self.session.get_kline(
+                category=self.trade_config.channel, 
+                symbol=self.trade_config.symbol,
+                interval=self.trade_config.interval,
+                limit=elements+1
+            )
+        except Exception as e:
+            self.log(f"Error: {e}")
+            return None 
+        
+        df = pd.DataFrame(response['result']['list'])
+        
+        df.columns = ['Time', 'Open', 'High', 'Low', 'Close', 'Volume', 'Turnover']
+        df = df.set_index('Time',drop=True)
+        # convert timestamp to datetime
+        df.index = pd.to_datetime(df.index.astype('int64'), unit='ms')
+        # sets values to float 
+        df = df.astype(float)
+        # inverts the dataframe 
+        df = df[::-1] 
+        # excludes last row since this is fresh candle, and is still open 
+        df = df[:-1]  
+        
+        return df 
