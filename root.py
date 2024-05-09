@@ -5,7 +5,6 @@ import templates
 import strategies
 import keyboard
 import generic 
-
 import logging 
 import sys, os 
 
@@ -71,7 +70,7 @@ class TradeMain:
         print()
         #try:
         self.ws.kline_stream(
-            interval=self.config.interval, 
+            interval=self.config.interval.value, 
             symbol=self.config.symbol, 
             callback=self.handler
         )
@@ -110,6 +109,7 @@ class TradeMain:
         self.ws.timer.join()
         self.ws.exit()
         logging.info("Connection Ended.")
+
 
 class Root:
     """
@@ -285,7 +285,7 @@ def main():
     config_dict = root.get_config_dict(directory)
 
     # ----- Sets Trade Configuration ----- #
-    trade_config = configs.TradeConfig(symbol="BTCUSDT", interval=1, channel='linear')
+    trade_config = configs.TradeConfig(symbol="BTCUSDT", interval=templates.intervals.Timeframes.MIN_1, channel='linear')
 
     # Loads selected module
     strategy = module(
@@ -336,6 +336,7 @@ def main():
 
                 
 if __name__ == "__main__": 
+    print(templates.intervals.Timeframes.available_timeframes())
     
     trade = main()
 
