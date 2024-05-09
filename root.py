@@ -276,8 +276,11 @@ def main():
     directory, strat_key = root.select_strategy()
     
     # Loads the user selected module using a strategy key, found in strategies.ini
-    module = root.load_module(strat_key)
-
+    try: 
+        module = root.load_module(strat_key)
+    except AttributeError: 
+        print(f"Module {strat_key} not found. Make sure to add the strategy in the __init__.py file.")
+        return main()
     # ----- Sets Strategy Configuration ----- # 
     config_dict = root.get_config_dict(directory)
 
@@ -298,7 +301,7 @@ def main():
 
     # Check for presence of backtest function 
     try: 
-        bt_func = strategy.backtest()
+        bt_func = strategy.backtest
     except AttributeError:
         print(f"Error. Backtest Function does not exist for: {strategy.name}")
         return main()
@@ -314,30 +317,18 @@ def main():
         for i, j in enumerate(options.keys()):
             print(f"{i}. {j}")
             
-        inp = input("Press any key to begin trade loop, press 0 to exit. ")
+        inp = input("Select Option: ")
         try:
             index = int(inp)
             key = list(options.keys())[index]
 
             # Run Function
             options[key]() 
-            break
+            if key == "Execute":
+                break
         except ValueError: 
             print("Invalid selection. Use index.")
-    """
-    try:
-        if int(inp) == 0:
-            sys.exit(0)
-        if int(inp) == 1: 
-            # AttributeError
-            strategy.backtest()
-        else: 
-            #trade.run()
-            pass 
-    except Exception as e:
-        #trade.run()
-        print(e)
-    """
+            
 
     return trade
 

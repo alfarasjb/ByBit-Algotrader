@@ -85,12 +85,6 @@ class RSI(Strategy):
         return side != 0
 
 
-    #def get_side(self, rsi:float):
-    #    if rsi > self.overbought:
-    #        return Side.SHORT 
-    #    if rsi < self.oversold: 
-    #        return Side.LONG 
-    #    return Side.NEUTRAL
     def get_side(self, calc_side:int) -> Side: 
         if calc_side == 1:
             return Side.LONG 
@@ -136,7 +130,6 @@ class RSI(Strategy):
 
 
     def backtest(self):
-        print("RUNNING BACKTEST")
         df = self.fetch(1000)
 
         df = self.attach_indicators(df)
