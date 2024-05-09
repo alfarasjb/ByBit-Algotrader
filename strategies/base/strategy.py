@@ -68,7 +68,7 @@ class Strategy:
 
     def info(self) -> None:
         # Prints symbol info 
-        self.log(f"Instrument Configuration - Symbol: {self.trade_config.symbol} Interval: {self.trade_config.interval} Channel: {self.trade_config.channel}")
+        self.log(f"Instrument Configuration - Symbol: {self.trade_config.symbol} Interval: {self.trade_config.interval.value} Channel: {self.trade_config.channel}")
 
         
 
@@ -147,7 +147,7 @@ class Strategy:
             response = self.session.get_kline(
                 category=self.trade_config.channel, 
                 symbol=self.trade_config.symbol,
-                interval=self.trade_config.interval,
+                interval=self.trade_config.interval.value,
                 limit=elements+1
             )
         except Exception as e:
