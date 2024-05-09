@@ -10,7 +10,6 @@ import logging
 import sys, os 
 
 
-
 class TradeMain:
     """ 
     Main execution class. 
@@ -29,6 +28,7 @@ class TradeMain:
         self.ws = WebSocket(testnet=True, channel_type=config.channel)
         self.callback = callback 
 
+        
 
     def handler(self, contents:dict) -> None:
         """
@@ -44,7 +44,8 @@ class TradeMain:
         data = contents['data'][0]
         candles = templates.Candles(self.config.symbol, **data)
         
-        if candles.confirm:
+        
+        if candles.confirm and self.running:
             # New candle event handler 
             self.on_new_candle(candles)
 
@@ -68,25 +69,52 @@ class TradeMain:
         print()
         logging.info("Running trade loop..")
         print()
-        try:
-            self.ws.kline_stream(
-                interval=self.config.interval, 
-                symbol=self.config.symbol, 
-                callback=self.handler
-            )
-        except self.ws.WebSocketConnectionClosedException as e: 
-            logging.info(f"WebSocket Connection has Ended. Exception: {e}")
+        #try:
+        self.ws.kline_stream(
+            interval=self.config.interval, 
+            symbol=self.config.symbol, 
+            callback=self.handler
+        )
+        
+        # Main member variable to determine callback execution 
+        self.running = True
+        
         
     def terminate(self):
         """
         Ends connection with WebSocket. Triggered by keyboard input.
+
+        Issue 1: 
+            Thread from websocket throws an error (WebSocketConnectionClosed), but does not hinder functionality 
+
+            Cause: `_send_initial_ping()` and `_send_custom_ping()` 
+
+            Solution(Temporary): Modify Timer variable in `_send_custom_ping()` as class member variable (self.timer), and kill the 
+            thread manually to silence the Exception. Also throws the same exception if `self.ws.exit()` is called prior to killing 
+            the thread. Solution: kill the thread first, then exit. 
+
+        Issue 2: 
+            Callback function still executes after killing the timer thread and exit. 
+
+            Solution(Temporary): Created a class member variable: `self.running` to determine if termination method is called, or if 
+            subsription to WS is called. Is set to false when termination function is called, sets to true if subscription function 
+            is called. 
         """
+        logging.info("Terminating WebSocket Connection..")
         
+        # Sets to false if termination is called, to disable on_new_candle function. See `handler()` method. 
+        self.running = False
+
+        # Note: Do not change the order 
+        # Kill the thread first before calling exit. Reversing the order throws an exception
+        self.ws.timer.join()
         self.ws.exit()
-        
+        logging.info("Connection Ended.")
 
 class Root:
-    ## Configuration goes here 
+    """
+    This module is the root class, and handles user interactions, setting configuration files, and other settings. 
+    """
     def __init__(self): 
         # ----- CONSTANTS (TEMP) ----- # 
         STRATS_CFG = os.path.join('strategies','strategies.ini')
@@ -230,9 +258,8 @@ class Root:
         return cfg
 
 
-                
-if __name__ == "__main__": 
 
+def main(): 
     # ----- Initialization ----- # 
     format = "%(asctime)s: %(message)s"
     logging.basicConfig(format = format, level = logging.INFO, datefmt="%H:%M:%S")
@@ -280,8 +307,16 @@ if __name__ == "__main__":
     
     trade.run()
 
+    return trade
+
+
+                
+if __name__ == "__main__": 
+    
+    trade = main()
+
 
     while True:
         if keyboard.read_key() == 'esc':
-            #trade.terminate()
-            pass
+            trade.terminate()
+            trade = main()

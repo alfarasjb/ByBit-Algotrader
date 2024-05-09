@@ -198,7 +198,7 @@ def get_string_value(source:str, default:int, valid_values:list=None, show_exit:
             if is_blank(val):
                 # Returns default if input is blank/whitespace
                 print(f"Using default for {source}: {default}")
-                return valid_values[default]
+                return valid_values[default-1]
             
             if not use_str_input:
                 # Continues the loop if string input is received, but use_str_input is disabled for selecting options 
