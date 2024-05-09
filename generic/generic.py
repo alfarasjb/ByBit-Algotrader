@@ -198,7 +198,7 @@ def get_string_value(source:str, default:int, valid_values:list=None, show_exit:
             if is_blank(val):
                 # Returns default if input is blank/whitespace
                 print(f"Using default for {source}: {default}")
-                return default 
+                return valid_values[default]
             
             if not use_str_input:
                 # Continues the loop if string input is received, but use_str_input is disabled for selecting options 
@@ -290,6 +290,9 @@ def get_configuration_files(path:str) -> list:
             Path in which search for configuration files are made. 
     """
     contents = os.listdir(path)
+    if len(contents) == 0: 
+        print(f"No files found in: {path}")
+        return None
     
     configuration_files = [c for c in contents if c.endswith('.ini')]
     return configuration_files

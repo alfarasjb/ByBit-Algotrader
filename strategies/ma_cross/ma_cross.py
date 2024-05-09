@@ -23,9 +23,9 @@ class MAType(Enum):
 
 @dataclass
 class MACrossConfigs: 
-    fast_ma_period:int # Period of Fast MA
-    slow_ma_period:int # Period of Slow MA 
-    ma_kind: MAType # MAType: Simple/Exponential 
+    fast_ma_period:int=20 # Period of Fast MA
+    slow_ma_period:int=100 # Period of Slow MA 
+    ma_kind: MAType=MAType.SIMPLE # MAType: Simple/Exponential 
 
 class MACross(Strategy):
     """
@@ -57,7 +57,13 @@ class MACross(Strategy):
         super().__init__("MA Crossover",config)
 
         # -------------------- Initializing member variables -------------------- #  
-        self.strategy = MACrossConfigs(**strategy_config)
+        if strategy_config is None: 
+            # strategy_config is None if no config files are found in config directory. 
+            print(f"No Strategy config found. Using defaults.")
+            #self.strategy = MACrossConfigs(fast_ma_period=20, slow_ma_period=100, ma_kind=MAType.SIMPLE)
+            self.strategy=MACrossConfigs()
+        else:
+            self.strategy = MACrossConfigs(**strategy_config)
         self.fast_ma_period, self.slow_ma_period, self.ma_kind = self.__set_strategy_configs(self.strategy)
 
         # -------------------- Validate Inputs -------------------- #  
@@ -120,12 +126,14 @@ class MACross(Strategy):
             kind: str 
                 Type of moving average to use. Expected Values: SIMPLE, EXPONENTIAL 
         """
+        if isinstance(kind, MAType):
+            return kind
         if kind == MAType.SIMPLE.name: 
             return MAType.SIMPLE 
         if kind == MAType.EXPONENTIAL.name:
             return MAType.EXPONENTIAL 
         else:
-            raise ValueError("Incorrect value for MA Type. Use: SIMPLE or EXPONENTIAL")
+            raise ValueError(f"Incorrect value for MA Type. Use: SIMPLE or EXPONENTIAL. Input: {kind}")
         
     
 

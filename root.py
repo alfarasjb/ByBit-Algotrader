@@ -65,6 +65,9 @@ class TradeMain:
         """
         Subscribes to Kline Stream 
         """
+        print()
+        logging.info("Running trade loop..")
+        print()
         try:
             self.ws.kline_stream(
                 interval=self.config.interval, 
@@ -91,20 +94,31 @@ class Root:
         # ----- Initialize list of available strategies in strategies/strategies.ini ----- # 
         self.strategies_kv = generic.cfg_as_dict(STRATS_CFG) 
         self.available_strategies = list(self.strategies_kv.keys())
+        print(self.strategies_kv)
         
 
     def select_strategy(self) -> list: 
+        """
+        Selects strategy from list of available strategies in the strategies.ini configuration file. 
 
-        print("Make sure to add your strategy in strategies/strategies.ini")
+        Configuration file must be formatted as `<strategy_name>=<class_name>`, to be parsed by the `cfg_as_dict()` function 
+
+        Strategy logic must be contained in `strategies/<strategy_name>/<strategy_name>.py`
+        """
+        print("Make sure to add your strategy logic in the strategies directory, and add key-value pair in strategies/strategies.ini")
+        print(f"Strategy options will not be displayed if installation is misconfigured")
         # Select strategy here 
         strategies_directory = 'strategies'
         contents = self.available_strategies
 
         paths=dict()
+        # files to exclude
         exclude = ['base']
         for c in contents:
             path = os.path.join(strategies_directory, c)
+
             if not os.path.isdir(path):
+                # Excludes strategy key if directory does not exist. 
                 continue
             if path.__contains__('__'):
                 continue
@@ -139,22 +153,27 @@ class Root:
         Selects strategy configuration given a strategy directory, and returns selected configuration to be loaded as dictionary, 
         and unpacked into strategy arguments. 
 
+        Strategy configuration files are found in `strategies/<strategy_name>/cfg`
+
         Parameters
         ----------
             directory:str=None
                 Strategy directory in which config directory and files are found. 
-                strategies\<strategy> 
+                `strategies/<strategy_name>` 
         """
 
         config_folder = 'cfg'
 
-        configs_directory = os.path.join(directory, config_folder) # strategies\<strategy>\cfg
+        configs_directory = os.path.join(directory, config_folder) # strategies\<strategy_name>\cfg
         
         if not os.path.isdir(configs_directory):
+            print(f"Error. {configs_directory} does not exist.")
             return None 
         
         # Receives list of configuration files in config directory 
         contents = generic.get_configuration_files(configs_directory)
+        if contents is None:
+            return None
 
         # Receives string value for config given a list of configuration files
         selected_config = generic.get_string_value(
@@ -200,10 +219,12 @@ class Root:
         ----------
             directory: str
                 Contains the directory of the selected strategy 
-                strategies\<strategy>
+                `strategies/<strategy_name>`
         """
         
         config_path = self.select_strategy_config(directory)
+        if config_path is None: 
+            return None
         cfg = generic.cfg_as_dict(config_path)
 
         return cfg
@@ -249,6 +270,14 @@ if __name__ == "__main__":
     )
 
     # ----- Runs trading operations ----- # 
+    print()
+    inp = input("Press any key to begin trade loop, press 0 to exit. ")
+    try:
+        if int(inp) == 0:
+            sys.exit(0)
+    except Exception as e:
+        print(e)
+    
     trade.run()
 
 
