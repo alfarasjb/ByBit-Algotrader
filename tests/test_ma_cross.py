@@ -4,7 +4,7 @@ Tests the functions in the MACross module.
 
 from strategies import MACross, MAType 
 from configs import TradeConfig 
-from templates import Side
+from templates import Side, Timeframes
 
 import unittest 
 import numpy as np
@@ -23,7 +23,7 @@ class TestMACrossStrategy(unittest.TestCase):
 
         self.short_price_series = self.long_price_series[::-1].reset_index(drop=True)
 
-        self.trade_config = TradeConfig(symbol="BTCUSDT", interval=1, channel='linear')
+        self.trade_config = TradeConfig(symbol="BTCUSDT", interval=Timeframes.MIN_1, channel='linear')
         self.strategy_config_dict = {"fast_ma_period" : "20", "slow_ma_period" : "100", "ma_kind" : "SIMPLE"} 
         self.strategy = MACross(
             config=self.trade_config,
@@ -62,7 +62,7 @@ class TestMACrossStrategy(unittest.TestCase):
         """
         long_df = self.strategy.attach_indicators(self.long_price_series)     
         last_row = long_df.index == (len(long_df)-1) 
-        long_df.loc[last_row, ['fast_ma','side']] = [0, -1]
+        long_df.loc[last_row, ['fast_ma','calculated_side']] = [0, -1]
         crossover = self.strategy.crossover(long_df)
         self.assertTrue(crossover)
 
@@ -72,7 +72,7 @@ class TestMACrossStrategy(unittest.TestCase):
         """
         short_df = self.strategy.attach_indicators(self.short_price_series)
         last_row = short_df.index == (len(short_df)-1)
-        short_df.loc[last_row, ['fast_ma','side']] = [100000, 1]
+        short_df.loc[last_row, ['fast_ma','calculated_side']] = [100000, 1]
         crossover = self.strategy.crossover(short_df)
         self.assertTrue(crossover)
 

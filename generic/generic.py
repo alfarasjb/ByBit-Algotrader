@@ -247,7 +247,7 @@ def cfg_as_dict(path:str) -> dict:
             if not line.__contains__('='):
                 continue 
             key, value = line.split('=')
-            cfg[key] = value.rstrip()
+            cfg[key.strip()] = value.strip()
     
     return cfg
 
