@@ -336,7 +336,6 @@ def main():
 
                 
 if __name__ == "__main__": 
-    print(templates.intervals.Timeframes.available_timeframes())
     
     trade = main()
 
