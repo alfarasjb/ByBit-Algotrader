@@ -296,18 +296,51 @@ def main():
         callback=strategy.stage        
     )
 
+    # Check for presence of backtest function 
+    try: 
+        bt_func = strategy.backtest()
+    except AttributeError:
+        print(f"Error. Backtest Function does not exist for: {strategy.name}")
+        return main()
+
     # ----- Runs trading operations ----- # 
-    print()
-    inp = input("Press any key to begin trade loop, press 0 to exit. ")
+    while True:
+        print()
+        options = {
+            "Exit" : sys.exit,
+            "Execute" : trade.run, 
+            "Backtest" : strategy.backtest, 
+        }
+        for i, j in enumerate(options.keys()):
+            print(f"{i}. {j}")
+            
+        inp = input("Press any key to begin trade loop, press 0 to exit. ")
+        try:
+            index = int(inp)
+            key = list(options.keys())[index]
+
+            # Run Function
+            options[key]() 
+            break
+        except ValueError: 
+            print("Invalid selection. Use index.")
+    """
     try:
         if int(inp) == 0:
             sys.exit(0)
+        if int(inp) == 1: 
+            # AttributeError
+            strategy.backtest()
+        else: 
+            #trade.run()
+            pass 
     except Exception as e:
+        #trade.run()
         print(e)
-    
-    trade.run()
+    """
 
     return trade
+
 
 
                 

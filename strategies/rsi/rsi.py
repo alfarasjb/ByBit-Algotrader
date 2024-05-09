@@ -4,6 +4,7 @@ import pandas_ta as ta
 import pandas as pd 
 from ..base import * 
 from dataclasses import dataclass 
+from backtest import Backtest
 
 @dataclass 
 class RSIConfigs:
@@ -60,18 +61,18 @@ class RSI(Strategy):
         oversold = 30 
         return period, overbought, oversold
     
-    def attach_indicators(self, data):
+    def attach_indicators(self, data: pd.DataFrame) -> pd.DataFrame:
         
         data['rsi'] = ta.rsi(data['Close'], self.period)
 
         # Build side as 1, -1, 0 
-        data['side'] = 0 
+        data['calculated_side'] = 0 
         overbought = data['rsi'] > self.overbought 
         oversold  = data['rsi'] < self.oversold
         # Sell if overbought
-        data.loc[overbought, 'side'] = int(Side.SHORT.value) 
+        data.loc[overbought, 'calculated_side'] = int(Side.SHORT.value) 
         # Buy if oversold 
-        data.loc[oversold, 'side'] = int(Side.LONG.value)
+        data.loc[oversold, 'calculated_side'] = int(Side.LONG.value)
 
         return data
 
@@ -79,17 +80,24 @@ class RSI(Strategy):
     def is_trade_valid(self, data):
         last = data.iloc[-1]
 
-        side = last['side'].item()
+        side = last['calculated_side'].item()
 
         return side != 0
 
 
-    def get_side(self, rsi:float):
-        if rsi > self.overbought:
-            return Side.SHORT 
-        if rsi < self.oversold: 
+    #def get_side(self, rsi:float):
+    #    if rsi > self.overbought:
+    #        return Side.SHORT 
+    #    if rsi < self.oversold: 
+    #        return Side.LONG 
+    #    return Side.NEUTRAL
+    def get_side(self, calc_side:int) -> Side: 
+        if calc_side == 1:
             return Side.LONG 
+        if calc_side == -1:
+            return Side.SHORT 
         return Side.NEUTRAL
+        
         
 
     def stage(self, candle:Candles) -> bool: 
@@ -106,9 +114,11 @@ class RSI(Strategy):
         # Get Last 
         last = df.iloc[-1]
         rsi = last['rsi'].item()
+        calculated_side = last['calculated_side'].item()
+        
 
         # Get Side 
-        side = self.get_side(rsi)
+        side = self.get_side(calculated_side)
 
         # General Logging 
         info = candle.info() + f" Trade Valid: {valid} RSI: {rsi:.2f}"
@@ -125,4 +135,11 @@ class RSI(Strategy):
         return trade_result 
 
 
-    
+    def backtest(self):
+        print("RUNNING BACKTEST")
+        df = self.fetch(1000)
+
+        df = self.attach_indicators(df)
+
+        bt = Backtest(df)
+        bt.plot_equity_curve()

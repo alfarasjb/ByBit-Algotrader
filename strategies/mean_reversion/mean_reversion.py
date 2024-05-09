@@ -6,13 +6,13 @@ from enum import Enum
 from ..base import *
 from dataclasses import dataclass
 
-class MeanReversion:
+class MeanReversion(Strategy):
     def __init__(
             self,
             config:TradeConfig, 
             strategy_config:dict
         ):
-        pass
+        super().__init__("Mean Reversion", config)
 
     def stage(self, candles:Candles):
         print(candles.symbol)
