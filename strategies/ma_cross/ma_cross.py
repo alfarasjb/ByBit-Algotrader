@@ -9,6 +9,7 @@ import pandas as pd
 from enum import Enum
 from ..base import *
 from dataclasses import dataclass
+from backtest import *
 
 
 class MAType(Enum):
@@ -157,6 +158,7 @@ class MACross(Strategy):
             return data.ewm(span=length).mean()
         
 
+    # Note: This is currently not used 
     @staticmethod
     def get_side(fast:float, slow:float) -> Side: 
         """
@@ -196,8 +198,8 @@ class MACross(Strategy):
             return None                    
         
         
-        last_side = last['side'].item()
-        prev_side = prev['side'].item()
+        last_side = last['calculated_side'].item()
+        prev_side = prev['calculated_side'].item()
 
         # Returns None if no signal is found 
         if last_side == 0 or prev_side == 0:
@@ -224,11 +226,11 @@ class MACross(Strategy):
         data['slow_ma'] = self.__ma(data=data['Close'], length=self.slow_ma_period)
         
         # build side as 1, -1, 0 
-        data['side'] = 0 
+        data['calculated_side'] = 0 
         long_ma = data['fast_ma'] > data['slow_ma'] 
         short_ma = data['fast_ma'] < data['slow_ma']
-        data.loc[long_ma, 'side'] = int(Side.LONG.value)
-        data.loc[short_ma, 'side'] = int(Side.SHORT.value)
+        data.loc[long_ma, 'calculated_side'] = int(Side.LONG.value)
+        data.loc[short_ma, 'calculated_side'] = int(Side.SHORT.value)
 
         return data
 
@@ -262,7 +264,8 @@ class MACross(Strategy):
         slow_ma = last['slow_ma'].item()
 
         # Determines side: Long or Short 
-        side = self.get_side(fast_ma, slow_ma) 
+        #side = self.get_side(fast_ma, slow_ma) 
+        side = Side.LONG if fast_ma > slow_ma else Side.SHORT if fast_ma < slow_ma else Side.NEUTRAL
 
         # General Logging 
         info = candle.info() + f" Crossover: {cross} Fast: {fast_ma:.2f} Slow: {slow_ma:.2f} Side: {side.name}"
@@ -279,4 +282,13 @@ class MACross(Strategy):
         return trade_result 
 
     
-    
+    def backtest(self): 
+        """
+        Tests the strategy on historical data, and plots the equity curve. 
+        """
+        df = self.fetch(1000)
+
+        df = self.attach_indicators(df)
+
+        bt = Backtest(df)
+        bt.plot_equity_curve()
