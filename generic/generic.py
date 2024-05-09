@@ -1,4 +1,7 @@
 
+import importlib.util
+import sys
+import os 
 
 
 def is_blank(value:str) -> bool: 
@@ -178,6 +181,8 @@ def get_string_value(source:str, default:int, valid_values:list=None, show_exit:
     """
 
     print()
+    index_message = f"Use index to select {source}" if not use_str_input else ""
+    print(f"{source}: {index_message}")
     # Prints options on terminal 
     generate_options(valid_values, show_exit=show_exit)
 
@@ -222,3 +227,69 @@ def get_string_value(source:str, default:int, valid_values:list=None, show_exit:
             # Raises index error if specified index exceeds available options
             print(f"Invalid selected value. Try Again.")
             continue 
+
+def cfg_as_dict(path:str) -> dict: 
+    """
+    Receives a path for config file (.ini) and returns the config as dictionary. 
+
+    Parameters
+    ----------
+        path:str 
+            Path to .ini file. 
+            Example: strategies/strategies.ini
+    """
+    if not path.endswith('.ini'):
+        raise ValueError("Selected file is not a configuration file. Try again.") 
+    
+    cfg=dict()
+    with open(path) as f: 
+        for line in f: 
+            if not line.__contains__('='):
+                continue 
+            key, value = line.split('=')
+            cfg[key] = value.rstrip()
+    
+    return cfg
+
+
+def load_module(target_module:str, filename:str, class_name:str):
+        """
+        Loads a module given a filename, and class name. 
+
+        Parameters
+        ----------
+            target_module: str 
+                Target path to search for specified classes
+            
+            filename: str 
+                Filename to search for class 
+
+            class_name: str 
+                Class to search and load
+        """ 
+        
+        spec = importlib.util.find_spec(target_module)
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[filename] = module 
+        spec.loader.exec_module(module)
+
+
+        k = getattr(module, class_name)
+        return k 
+
+
+def get_configuration_files(path:str) -> list: 
+    """
+    Returns configuration files found in specified path.
+
+    Configuration filenames ends with .ini 
+
+    Parameters
+    ----------
+        path:str
+            Path in which search for configuration files are made. 
+    """
+    contents = os.listdir(path)
+    
+    configuration_files = [c for c in contents if c.endswith('.ini')]
+    return configuration_files

@@ -9,6 +9,8 @@ import generic
 import logging 
 import sys, os 
 
+
+
 class TradeMain:
     """ 
     Main execution class. 
@@ -83,49 +85,130 @@ class TradeMain:
 class Root:
     ## Configuration goes here 
     def __init__(self): 
-        pass 
+        # ----- CONSTANTS (TEMP) ----- # 
+        STRATS_CFG = os.path.join('strategies','strategies.ini')
+
+        # ----- Initialize list of available strategies in strategies/strategies.ini ----- # 
+        self.strategies_kv = generic.cfg_as_dict(STRATS_CFG) 
+        self.available_strategies = list(self.strategies_kv.keys())
+        
 
     def select_strategy(self) -> list: 
-        
+
+        print("Make sure to add your strategy in strategies/strategies.ini")
+        # Select strategy here 
         strategies_directory = 'strategies'
-        contents = os.listdir(strategies_directory)
-        directories=list()
-        strategies=list()
+        contents = self.available_strategies
+
+        paths=dict()
+        exclude = ['base']
         for c in contents:
             path = os.path.join(strategies_directory, c)
             if not os.path.isdir(path):
                 continue
             if path.__contains__('__'):
                 continue
-            directories.append(path)
-            strategies.append(c)
-                
-        return directories
+            if c in exclude:
+                continue
+            paths[c] = path
+        
+        selected_strategy = generic.get_string_value(
+            source="Strategy",
+            default=1,
+            valid_values=list(paths.keys()),
+            show_exit=False,
+            use_str_input=False
+        )
 
+        #paths[value] = strategies\<strategy> 
+        #value = <strategy>
+        
+        strategy_path = paths[selected_strategy]
+        module_name = self.strategies_kv[selected_strategy]
+        
+        
+        
+        print(f"Selected Strategy: {selected_strategy}")
+        print(f"Module Name: {module_name}")
+        print(f"Path: {strategy_path}")
+
+        return strategy_path, selected_strategy
+    
     def select_strategy_config(self, directory:str=None) -> str:
+        """
+        Selects strategy configuration given a strategy directory, and returns selected configuration to be loaded as dictionary, 
+        and unpacked into strategy arguments. 
+
+        Parameters
+        ----------
+            directory:str=None
+                Strategy directory in which config directory and files are found. 
+                strategies\<strategy> 
+        """
+
         config_folder = 'cfg'
-        directory = self.select_strategy()[4] if directory is None else directory 
-        configs_directory = os.path.join(directory, config_folder)
+
+        configs_directory = os.path.join(directory, config_folder) # strategies\<strategy>\cfg
+        
         if not os.path.isdir(configs_directory):
             return None 
         
-        contents = os.listdir(configs_directory) 
-        selected = os.path.join(configs_directory, contents[0])
-        
-        return selected 
+        # Receives list of configuration files in config directory 
+        contents = generic.get_configuration_files(configs_directory)
+
+        # Receives string value for config given a list of configuration files
+        selected_config = generic.get_string_value(
+            source="Strategy Config",
+            default=1,
+            valid_values=contents, 
+            show_exit=False, 
+            use_str_input=False
+        )
+        config_path = os.path.join(configs_directory, selected_config)
+
+        print(f"Selected Config: {selected_config}")
+        print(f"Path: {config_path}")
+        print()
+
+        return config_path
     
-    def process_config_ini(self, path:str) -> dict:
+    
+    
 
-        config_dict=dict()
-        with open(path) as f: 
-            for line in f: 
-                if not line.__contains__('='):
-                    continue 
-                key, value = line.split('=')
-                config_dict[key] = value.rstrip() 
+    def load_module(self, key:str=None):
+        """
+        Loads a strategy given a strategy key. Refer to strategies.ini for keys. 
+
+        Parameters
+        ----------
+            key:str = None 
+                Contains the strategy key specified in strategies.ini
+        """ 
+        module = generic.load_module(
+            target_module="strategies",
+            filename=key,
+            class_name=self.strategies_kv[key]
+        )
         
+        return module 
+    
+    def get_config_dict(self, directory:str) -> dict: 
+        """
+        Converts a strategy configuration file as dictionary, to be unpacked as class arguments. 
 
-        return config_dict
+        Parameters
+        ----------
+            directory: str
+                Contains the directory of the selected strategy 
+                strategies\<strategy>
+        """
+        
+        config_path = self.select_strategy_config(directory)
+        cfg = generic.cfg_as_dict(config_path)
+
+        return cfg
+
+
                 
 if __name__ == "__main__": 
 
@@ -142,27 +225,20 @@ if __name__ == "__main__":
     root = Root()
 
     # ----- Select Strategy ----- # 
+    directory, strat_key = root.select_strategy()
     
+    # Loads the user selected module using a strategy key, found in strategies.ini
+    module = root.load_module(strat_key)
+
+    # ----- Sets Strategy Configuration ----- # 
+    config_dict = root.get_config_dict(directory)
 
     # ----- Sets Trade Configuration ----- #
     trade_config = configs.TradeConfig(symbol="BTCUSDT", interval=1, channel='linear')
 
-    # ----- Sets Strategy Configuration ----- # 
-    config_dict = root.process_config_ini(root.select_strategy_config())
-    
-    # ----- Calls a strategy ----- # 
-    #strategy = strategies.MACross(
-    #    trade_config,
-    #    fast_ma_period=20, 
-    #    slow_ma_period=100,
-    #    ma_kind=strategies.MAType.SIMPLE
-    #) 
-    #strategy = strategies.MACross(
-    #    config=trade_config,
-    #    strategy_config=config_dict
-    #)
-    strategy = strategies.RSI(
-        config=trade_config,
+    # Loads selected module
+    strategy = module(
+        config=trade_config, 
         strategy_config=config_dict
     )
 
