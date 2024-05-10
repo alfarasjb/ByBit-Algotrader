@@ -30,7 +30,12 @@ class TestMACrossStrategy(unittest.TestCase):
             strategy_config=self.strategy_config_dict
         )
 
-
+    def test_faulty_strat_config(self):
+        strat_config = {"fast_ma_period" : "20", "slow_ma_period" : "wrong_value", "ma_kind" : "invalid"}
+        strategy = MACross(
+            config=self.trade_config,
+            strategy_config=strat_config
+        )
         
     def test_side(self): 
         """

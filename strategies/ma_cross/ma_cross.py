@@ -94,11 +94,9 @@ class MACross(Strategy, Configs):
 
         # If any errors are found, Defaults are used. 
         print("Invalid config file. Setting Defaults.")
-        fast = 20
-        slow = 100 
-        ma_kind = MAType.SIMPLE 
 
-        return fast, slow, ma_kind
+        return self.get_default_strategy_config_values(MACrossConfigs)
+
 
     
     @staticmethod
