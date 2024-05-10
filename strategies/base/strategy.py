@@ -70,6 +70,8 @@ class Strategy:
         # Prints symbol info 
         self.log(f"Instrument Configuration - Symbol: {self.trade_config.symbol} Interval: {self.trade_config.interval.value} Channel: {self.trade_config.channel}")
 
+
+    
         
 
     def send_market_order(self, side:Side) -> bool:

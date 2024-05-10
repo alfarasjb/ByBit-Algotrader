@@ -24,7 +24,9 @@ Creating a Strategy File:
 
 Required Elements: 
 1. Strategy Configs dataclass - contains necessary properties for processing data (indicator values, etc)
-2. Strategy Logic Class - contains main logic and execution, inherits from Strategy base class 
+2. Strategy Logic Class - contains main logic and execution, inherits from Strategy and Configs base class. 
+    Strategy - Holds methods for sending orders 
+    Configs - Holds methods for processing and validating strategy configuration
 
 
 Strategy Logic:
