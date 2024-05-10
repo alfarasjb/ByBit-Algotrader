@@ -70,8 +70,6 @@ class Strategy:
         # Prints symbol info 
         self.log(f"Instrument Configuration - Symbol: {self.trade_config.symbol} Interval: {self.trade_config.interval.value} Channel: {self.trade_config.channel}")
 
-
-    
         
 
     def send_market_order(self, side:Side) -> bool:
@@ -170,3 +168,24 @@ class Strategy:
         df = df[:-1]  
         
         return df 
+    
+
+    def valid_columns(self, data:pd.DataFrame, columns:list) -> bool: 
+        
+        if not isinstance(data, pd.DataFrame):
+            raise ValueError("Invalid type. Expecting DataFrame")
+        
+        for d in data.columns:
+            if d not in columns:
+                return False 
+            
+        return True
+    
+
+    def get_side(self, calc_side:int) -> Side: 
+        if calc_side == 1:
+            return Side.LONG 
+        if calc_side == -1:
+            return Side.SHORT 
+        return Side.NEUTRAL
+        
