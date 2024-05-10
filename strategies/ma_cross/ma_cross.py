@@ -3,7 +3,8 @@ This module contains the main implementation of a generic Moving Average Crossov
 """
 
 
-from templates import * 
+#from templates import * 
+from templates.indicator import MAType
 from configs import *
 import pandas as pd 
 from enum import Enum
@@ -12,23 +13,13 @@ from dataclasses import dataclass
 from backtest import *
 
 
-class MAType(Enum):
-    """ 
-    Enum for holding MA Type
-    
-    1. Simple Moving Average
-    2. Exponential Moving Average 
-    """
-    SIMPLE = 1 # Simple Moving Average
-    EXPONENTIAL = 2 # Exponential Moving Average
-
 @dataclass
 class MACrossConfigs: 
     fast_ma_period:int=20 # Period of Fast MA
     slow_ma_period:int=100 # Period of Slow MA 
     ma_kind: MAType=MAType.SIMPLE # MAType: Simple/Exponential 
 
-class MACross(Strategy):
+class MACross(Strategy, Configs):
     """
     Main class for Moving Average Crossover strategy, and inherits from Strategy base class. 
 
@@ -55,18 +46,13 @@ class MACross(Strategy):
                 Contains strategy parameters for indicators, etc 
         """
         
-        super().__init__("MA Crossover",config)
+        Strategy.__init__(self,name="MA Crossover",config=config)
+        Configs.__init__(self)
+        
 
         # -------------------- Initializing member variables -------------------- #  
-        if strategy_config is None: 
-            # strategy_config is None if no config files are found in config directory. 
-            print(f"No Strategy config found. Using defaults.")
-            #self.strategy = MACrossConfigs(fast_ma_period=20, slow_ma_period=100, ma_kind=MAType.SIMPLE)
-            self.strategy=MACrossConfigs()
-        else:
-            self.strategy = MACrossConfigs(**strategy_config)
+        self.strategy = self.check_strategy(strategy_config, MACrossConfigs)
         self.fast_ma_period, self.slow_ma_period, self.ma_kind = self.__set_strategy_configs(self.strategy)
-
         # -------------------- Validate Inputs -------------------- #  
         # Fast ma must be less than slow ma 
         if self.fast_ma_period > self.slow_ma_period: 
