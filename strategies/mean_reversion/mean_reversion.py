@@ -17,24 +17,34 @@ class MeanReversionConfigs:
     ma_kind:MAType=MAType.SIMPLE # Moving average type 
 
 
-class MeanReversion(Strategy):
+class MeanReversion(Strategy, Configs):
     def __init__(
             self,
             config:TradeConfig, 
             strategy_config:dict
         ):
-        super().__init__("Mean Reversion", config)
-
+        
+        Strategy.__init__(self, name="Mean Reversion", config=config)
+        Configs.__init__(self)
 
         self.strategy=self.check_strategy(strategy_config, MeanReversionConfigs)
+
         
 
     def __set_strategy_configs(self, strategy:MeanReversionConfigs): 
         try:
-            pass
+            mean_period = int(strategy.mean_period)
+            spread_mean_period = int(strategy.spread_mean_period)
+            spread_sdev_period = int(strategy.spread_sdev_period)
+            threshold = float(strategy.threshold)
+            ma_kind = self.__select_ma_type(strategy.ma_kind)
+            
+            return mean_period, spread_mean_period, spread_sdev_period, threshold, ma_kind 
         except:
             pass 
             
+
+
 
     @staticmethod 
     def __select_ma_type(kind:str) -> MAType: 

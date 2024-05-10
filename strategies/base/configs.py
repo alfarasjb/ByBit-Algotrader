@@ -5,7 +5,7 @@ class Configs:
     def __init__(self):
         pass
 
-    def check_strategy(self, strategy_config:dict, strategy:any): 
+    def check_strategy(self, strategy_config:dict, strategy:object): 
         """
         Attempts to unpack the strategy configuration from .ini file, into config dataclass. 
 
@@ -18,3 +18,12 @@ class Configs:
         # Unppack Config
         return strategy(**strategy_config)
         
+        
+    @staticmethod 
+    def get_default_strategy_config_values(strategy:object) -> list:
+        """
+        Returns default values of a strategy configuration as a list. 
+
+        This is called when errors are raised while parsing input parameters from .ini file. 
+        """
+        return list(strategy().__dict__.values())
