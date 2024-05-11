@@ -256,9 +256,10 @@ class MACross(Strategy, Configs):
         self.log(info)
 
         trade_result = False 
+        cross = True # Temporary
         if cross: 
             # Sends trade orders if MA Crossover is found
-            self.close_all_orders()
+            self.close_all_open_positions()
 
             # Returns true if order was sent successfully. 
             trade_result = self.send_market_order(side)

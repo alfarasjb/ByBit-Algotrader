@@ -2,3 +2,4 @@ references/
 *.pyc
 *.ipynb
 tests/__pycache__/
+api_secrets/
