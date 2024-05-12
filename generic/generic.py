@@ -1,3 +1,7 @@
+"""
+This file contains generic methods that are used for interacting with user actions. Loading selected strategies, 
+configurations, etc. 
+"""
 
 import importlib.util
 import sys

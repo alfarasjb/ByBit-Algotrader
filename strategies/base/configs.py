@@ -1,10 +1,9 @@
-
+"""
+Contains methods for working with strategy configuration files
+"""
 
 class Configs:
-
-    def __init__(self):
-        pass
-
+    
     def check_strategy(self, strategy_config:dict, strategy:object): 
         """
         Attempts to unpack the strategy configuration from .ini file, into config dataclass. 
