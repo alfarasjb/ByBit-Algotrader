@@ -1,3 +1,8 @@
+"""
+This module contains the Backtest class, which is the primary class for holding methods and 
+relevant information pertaining to backtesting strategies in the strategies module. 
+"""
+
 import pandas as pd 
 import matplotlib.pyplot as plt 
 import numpy as np 

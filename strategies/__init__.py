@@ -45,3 +45,4 @@ from .bbands.bbands import *
 from .mean_reversion.mean_reversion import * 
 from .rsi.rsi import *
 from .risk_premia.risk_premia import *
+from .demo_strategy.demo_strategy import *
