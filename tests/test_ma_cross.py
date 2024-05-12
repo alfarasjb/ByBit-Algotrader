@@ -50,14 +50,14 @@ class TestMACrossStrategy(unittest.TestCase):
         slow_ma = 12.50 
 
         side_result = self.strategy.get_side(fast = fast_ma, slow = slow_ma)
-        self.assertEqual(side_result, Side.SHORT)
+        self.assertEqual(side_result, Side.SELL)
 
         # test long 
         fast_ma = 12.50 
         slow_ma = 10.50 
 
         side_result = self.strategy.get_side(fast=fast_ma, slow=slow_ma)
-        self.assertEqual(side_result, Side.LONG)
+        self.assertEqual(side_result, Side.BUY)
 
         # test neutral 
         fast_ma = slow_ma = 10.50 

@@ -157,9 +157,9 @@ class MACross(Strategy, Configs):
         """
         
         if fast > slow: 
-            return Side.LONG 
+            return Side.BUY 
         if fast < slow:
-            return Side.SHORT 
+            return Side.SELL 
         return Side.NEUTRAL
     
 
@@ -213,8 +213,8 @@ class MACross(Strategy, Configs):
         data['calculated_side'] = 0 
         long_ma = data['fast_ma'] > data['slow_ma'] 
         short_ma = data['fast_ma'] < data['slow_ma']
-        data.loc[long_ma, 'calculated_side'] = int(Side.LONG.value)
-        data.loc[short_ma, 'calculated_side'] = int(Side.SHORT.value)
+        data.loc[long_ma, 'calculated_side'] = int(Side.BUY.value)
+        data.loc[short_ma, 'calculated_side'] = int(Side.SELL.value)
 
         return data
 
@@ -249,7 +249,7 @@ class MACross(Strategy, Configs):
 
         # Determines side: Long or Short 
         #side = self.get_side(fast_ma, slow_ma) 
-        side = Side.LONG if fast_ma > slow_ma else Side.SHORT if fast_ma < slow_ma else Side.NEUTRAL
+        side = Side.BUY if fast_ma > slow_ma else Side.SELL if fast_ma < slow_ma else Side.NEUTRAL
 
         # General Logging 
         info = candle.info() + f" Crossover: {cross} Fast: {fast_ma:.2f} Slow: {slow_ma:.2f} Side: {side.name}"
