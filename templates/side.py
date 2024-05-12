@@ -10,6 +10,6 @@ class Side(Enum):
     0 - Neutral
     
     """
-    LONG = 1
-    SHORT = -1 
+    BUY = 1
+    SELL = -1 
     NEUTRAL = 0 

@@ -4,7 +4,7 @@ import logging
 import os 
 import pandas as pd
 from pybit.unified_trading import HTTP 
-
+from api_secrets import *
 _log = logging.getLogger(__name__)
 
 
@@ -23,7 +23,7 @@ class Risk:
 
     def __init__(self):
         self.params = RiskParams(
-            quantity=10, 
+            quantity=0.001, 
             take_profit=0.012, 
             stop_loss=0.009, 
             leverage=10
@@ -32,11 +32,11 @@ class Risk:
     def calculate(self, mark_price:float, side:Side):
         # Calculate SL TP 
         digits = 2 # Temporary
-        if side == Side.LONG: 
+        if side == Side.BUY: 
             tp_price = round(mark_price + (mark_price*self.params.take_profit), digits)
             sl_price = round(mark_price - (mark_price*self.params.stop_loss), digits)
             return tp_price, sl_price 
-        if side == Side.SHORT:
+        if side == Side.SELL:
             tp_price = round(mark_price - (mark_price*self.params.take_profit), digits)
             sl_price = round(mark_price + (mark_price*self.params.stop_loss), digits)
             return tp_price, sl_price
@@ -55,8 +55,8 @@ class Strategy:
         self.trade_config = config
 
         # Session  
-        self.session = HTTP(testnet=True, api_key = os.environ['BYBIT_API'], api_secret=os.environ['BYBIT_SECRET'])
-
+        #self.session = HTTP(testnet=False, api_key = os.environ['BYBIT_API'], api_secret=os.environ['BYBIT_SECRET'])
+        self.session = HTTP(testnet=False, api_key=api_secrets.bybit_api_demo, api_secret=api_secrets.bybit_api_secret,demo=True)
 
     def log(self, message:str) -> None: 
         # Strategy Logger
@@ -79,7 +79,7 @@ class Strategy:
         tp_price, sl_price = risk.calculate(mark_price, side) 
 
         try:
-            session_side = self.__get_side(side) 
+            session_side = side.name.title()
             session_order = self.__get_order_type(Order.MARKET)
 
             self.log(f"Sending Market Order: Symbol: {self.trade_config.symbol} Side: {session_side} Order: {session_order} Quantity: {risk.params.quantity} TP: {tp_price} SL: {sl_price}")
@@ -90,12 +90,16 @@ class Strategy:
                 side=session_side, 
                 orderType=session_order,
                 qty=risk.params.quantity, 
-                take_profit=tp_price,
-                stop_loss=sl_price,
-                tpTriggerBy=session_order,
-                slTriggerBy=session_order
+                take_profit=str(tp_price),
+                stop_loss=str(sl_price),
+                #tpTriggerBy=session_order,
+                #slTriggerBy=session_order
             )
             self.log(trade_result)
+            
+            if int(trade_result['retCode']) == 0: 
+                self.log(f"Order Send Successful. ID: {trade_result['result']['orderId']}")
+
         except Exception as e:
             self.log(f"Order Send Failed. {e}")
             return False
@@ -110,6 +114,64 @@ class Strategy:
         # Closes all orders 
         print(f"Close All Orders")
 
+    def close_all_open_positions(self) -> None: 
+        # Closes all open positions 
+        # Needs symbol, side
+        positions_to_close = self.get_open_positions() 
+        for p in positions_to_close: 
+            side = self.__get_close_side(p.side)
+            symbol=p.symbol
+            qty=p.size 
+            
+            trade_result = self.session.place_order(
+                category=self.trade_config.channel, 
+                symbol=symbol, 
+                side=side,
+                orderType=Order.MARKET.name.title(), 
+                qty=qty
+            )
+
+
+
+
+
+    def get_open_positions(self) -> list: 
+        # Needs: Symbol, side
+        
+        positions = self.session.get_positions(
+            category=self.trade_config.channel, 
+            symbol=self.trade_config.symbol
+        )['result']['list']
+        
+        # convert to list of type Positions 
+        open_positions = list()
+        for p in positions: 
+            symbol=p['symbol']
+            side = p['side']
+            
+            
+            if float(p['size']) == 0:
+                continue 
+            
+            open_positions.append(Position(
+                symbol=p['symbol'],
+                side=p['side'],
+                size=p['size']
+            ))
+            
+
+        return open_positions 
+    
+    
+    
+    @staticmethod
+    def __get_close_side(side:str):
+        if side == Side.BUY.name.title():
+            return Side.SELL.name.title() 
+        if side == Side.SELL.name.title():
+            return Side.BUY.name.title() 
+        
+
     def __get_mark_price(self): 
         
         mark_price = self.session.get_tickers(
@@ -119,15 +181,6 @@ class Strategy:
 
         return float(mark_price)
     
-    def __get_side(self, side:Side): 
-        # returns side string 
-        if side == side.LONG:
-            return "Buy"
-        if side == side.SHORT:
-            return "Sell"
-        else:
-            return ""
-
     def __get_order_type(self, order:Order):
         if order == order.MARKET:
             return "Market"
@@ -184,8 +237,8 @@ class Strategy:
 
     def get_side(self, calc_side:int) -> Side: 
         if calc_side == 1:
-            return Side.LONG 
+            return Side.BUY 
         if calc_side == -1:
-            return Side.SHORT 
+            return Side.SELL 
         return Side.NEUTRAL
         
