@@ -4,3 +4,4 @@ references/
 tests/__pycache__/
 api_secrets/
 *.png
+.idea/

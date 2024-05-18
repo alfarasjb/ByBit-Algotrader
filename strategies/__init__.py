@@ -40,7 +40,8 @@ Required Functions:
 2. Backtest - generates a backtest of the strategy from the most recent data from ByBit
 """
 
-from .ma_cross.ma_cross import * 
+# Note: Do not remove this
+from .ma_cross.ma_cross import *
 from .bbands.bbands import * 
 from .mean_reversion.mean_reversion import * 
 from .rsi.rsi import *

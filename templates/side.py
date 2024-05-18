@@ -12,4 +12,4 @@ class Side(Enum):
     """
     BUY = 1
     SELL = -1 
-    NEUTRAL = 0 
+    NEUTRAL = 0

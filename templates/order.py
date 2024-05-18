@@ -1,5 +1,6 @@
 from enum import Enum 
 
+
 class Order(Enum):
     """
     Enum for holding Order Types 

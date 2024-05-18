@@ -6,7 +6,7 @@ class Candles:
     """
     Contains information on latest ticker values 
     """
-    symbol:str  
+    symbol: str
     start: int 
     end: int 
     interval: str 
@@ -20,7 +20,8 @@ class Candles:
     timestamp: int 
 
     def info(self):
-        message = f"{self.symbol} Open: {self.open} High: {self.high} Low: {self.low} Close: {self.close} Volume: {self.volume}"
+        message = f"{self.symbol} Open: {self.open} High: {self.high} Low: {self.low} Close: {self.close} Volume: \
+            {self.volume}"
         return message
 
 

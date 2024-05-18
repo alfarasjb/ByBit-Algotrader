@@ -12,5 +12,6 @@ class Timeframes(Enum):
     W_1 = "W"
     MN_1 = "M"
 
+    @staticmethod
     def available_timeframes():
         return [t.name for t in Timeframes]

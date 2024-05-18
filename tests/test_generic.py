@@ -2,11 +2,13 @@
 Tests the functions in the `generic` module.
 """
 
+import os
+import unittest
+from unittest.mock import patch
+
 from generic import generic 
 from strategies import MACross
-import os 
-import unittest 
-from unittest.mock import patch 
+
 
 class TestGeneric(unittest.TestCase):
     """
@@ -23,7 +25,7 @@ class TestGeneric(unittest.TestCase):
         self.source = "Test"
         self.default = 1 
         self.min_value = 1 
-        self.valid_values = ["one","two","three"]
+        self.valid_values = ["one", "two", "three"]
 
     def test_is_blank(self):
         """
@@ -60,7 +62,6 @@ class TestGeneric(unittest.TestCase):
         """
         value = generic.get_integer_value(self.source, self.default, self.min_value)
         self.assertEqual(value, self.default)
-        
 
     @patch("builtins.input", return_value="5")
     def test_get_integer_value_valid(self, mocked): 
@@ -71,7 +72,6 @@ class TestGeneric(unittest.TestCase):
         """
         value = generic.get_integer_value(self.source, self.default, self.min_value)
         self.assertEqual(value, 5)
-        
 
     @patch("builtins.input", return_value="")
     def test_get_string_value_blank(self, mocked):
@@ -83,7 +83,7 @@ class TestGeneric(unittest.TestCase):
         value = generic.get_string_value(self.source, self.default, self.valid_values)
         self.assertEqual(value, "one")
         
-    @patch("builtins.input", return_value = "two")
+    @patch("builtins.input", return_value="two")
     def test_get_string_value_string_input(self, mocked):
         """
         Tests the `get_string_value` function, given a valid input. 
@@ -93,7 +93,7 @@ class TestGeneric(unittest.TestCase):
         value = generic.get_string_value(self.source, self.default, self.valid_values, use_str_input=True)
         self.assertEqual(value, "two")
 
-    @patch("builtins.input", return_value = "0")
+    @patch("builtins.input", return_value="0")
     def test_get_string_value_none(self, mocked):
         """
         Tests the `get_string_value` function, given 0 as an input.
@@ -103,7 +103,7 @@ class TestGeneric(unittest.TestCase):
         value = generic.get_string_value(self.source, self.default, self.valid_values)
         self.assertEqual(value, None)
 
-    @patch("builtins.input", return_value = "2")
+    @patch("builtins.input", return_value="2")
     def test_get_string_value_valid(self, mocked):
         """
         Tests the `get_string_value` function given a valid selection. 
@@ -113,24 +113,22 @@ class TestGeneric(unittest.TestCase):
         value = generic.get_string_value(self.source, self.default, self.valid_values)
         self.assertEqual(value, "two")
 
-
     def test_cfg_as_dict(self):
         """
         Tests the `cfg_as_dict` function. 
 
         Tests a valid file, and an invalid file. 
         """
-        directory = os.path.join("tests","test_data")
+        directory = os.path.join("tests", "test_data")
 
         # Tests the valid file
-        valid_path = os.path.join(directory,"cfg_valid.ini")
-        kv = {"value" : "1"}
+        valid_path = os.path.join(directory, "cfg_valid.ini")
+        kv = {"value": "1"}
         self.assertEqual(generic.cfg_as_dict(valid_path), kv)
 
         # Tests the file with invalid formatting
         invalid_path = os.path.join(directory, "cfg_inv.ini")
         self.assertEqual(generic.cfg_as_dict(invalid_path), dict())
-
 
     def test_load_module(self):
         """
@@ -139,12 +137,12 @@ class TestGeneric(unittest.TestCase):
         Checks if correct module is loaded, and the correct errors are raised when the target directory 
         or file is wrong. 
         """
-        target_module = "strategies" # Raises attribute error 
-        filename = "ma_cross" # 
-        class_name = "MACross" # Raises attribute error 
+        target_module = "strategies"  # Raises attribute error
+        filename = "ma_cross"  #
+        class_name = "MACross"  # Raises attribute error
 
         # Test valid module
-        strategy = generic.load_module(target_module,filename,class_name)
+        strategy = generic.load_module(target_module, filename, class_name)
         self.assertEqual(strategy, MACross)
 
         # Test invalid strategies folder 
@@ -159,12 +157,12 @@ class TestGeneric(unittest.TestCase):
 
         Scans a dummy path for `.ini` files, and returns the files as a list.
         """
-        path = os.path.join("tests","test_data")      
+        path = os.path.join("tests", "test_data")
 
         # Test length 
         self.assertEqual(len(generic.get_configuration_files(path)), 2)
         # Test folders with contents, but not .ini files 
         self.assertEqual(generic.get_configuration_files("tests"), list())
         # Test folder with no contents
-        empty_path = os.path.join("tests","test_data","empty_folder")
+        empty_path = os.path.join("tests", "test_data", "empty_folder")
         self.assertEqual(generic.get_configuration_files(empty_path), None)
