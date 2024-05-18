@@ -18,16 +18,16 @@ class Demo(Strategy, Configs):
 
     def __init__(
             self,
-            config:TradeConfig,
-            strategy_config:dict
-        ):
+            config: TradeConfig,
+            strategy_config: dict):
         
         Strategy.__init__(self, name="Demo Strategy", config=config)
         Configs.__init__(self) 
 
         self.info()
 
-    def build(self, data:pd.DataFrame) -> pd.DataFrame:
+    @staticmethod
+    def build(data: pd.DataFrame) -> pd.DataFrame:
         
         data['change'] = data['Close'] - data['Open']
         data['calculated_side'] = 0 
@@ -37,7 +37,6 @@ class Demo(Strategy, Configs):
         data.loc[short, 'calculated_side'] = int(Side.SELL.value)
 
         return data 
-
 
     def stage(self, candle: Candles) -> bool:
         candles_to_fetch = 5 
@@ -56,14 +55,13 @@ class Demo(Strategy, Configs):
         if side == Side.NEUTRAL:
             return False 
 
-        trade_result=False 
+        trade_result = False
         
         self.close_all_open_positions() 
 
         trade_result = self.send_market_order(side)
 
         return trade_result
-
 
     def backtest(self):
         pass

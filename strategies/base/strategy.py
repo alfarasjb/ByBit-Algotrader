@@ -10,7 +10,9 @@ from typing import List, Optional
 from configs.trade_cfg import TradeConfig
 from api_secrets import api_secrets
 from .risk import Risk
-from templates import Side, Order, Position
+from templates.side import Side
+from templates.order import Order
+from templates.position import Position
 
 _log = logging.getLogger(__name__)
 

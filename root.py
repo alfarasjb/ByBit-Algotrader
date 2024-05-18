@@ -6,7 +6,6 @@ import sys
 import os
 
 from configs.trade_cfg import TradeConfig
-import templates
 from templates.candles import Candles
 from generic import generic
 from constants import constants as c
