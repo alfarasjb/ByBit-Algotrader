@@ -1,0 +1,6 @@
+numpy>=1.21.0
+pandas>=2.2.0
+dataclasses>=0.8
+keyboard>=0.13.5
+pybit>=5.7.0
+matplotlib>=3.7.1

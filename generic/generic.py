@@ -5,10 +5,11 @@ configurations, etc.
 
 import importlib.util
 import sys
-import os 
+import os
+from typing import List, Any, Optional, Dict, Union
 
 
-def is_blank(value:str) -> bool: 
+def is_blank(value: str) -> bool:
     """
     Receives a string input and determines whether input is blank/whitespace
     
@@ -25,7 +26,8 @@ def is_blank(value:str) -> bool:
     # Determines if value is whitespace
     return value.isspace() 
 
-def validate_integer_input(value:str, min_value:int=None) -> bool: 
+
+def validate_integer_input(value: str, min_value: int = None) -> bool:
     """
     Receives user input as string, and validates if received input is an integer. 
 
@@ -51,10 +53,9 @@ def validate_integer_input(value:str, min_value:int=None) -> bool:
     
     # Returns true if input is whitespace. Default will be used
     if value.isspace():
-        return True 
-    
+        return True
 
-    # Checks if value is an integer. Throws error if cannot be casted to int. 
+    # Checks if `value` is an integer, and throws and error if casting fails.
     try:
         int(value)
     except ValueError as e:
@@ -68,13 +69,13 @@ def validate_integer_input(value:str, min_value:int=None) -> bool:
     return True 
 
 
-def generate_options(options:list, show_exit:bool=True) -> None: 
+def generate_options(options: List[Any], show_exit: bool = True) -> None:
     """
-    Receives a list of options, and displays an enumaration of the options on the terminal. 
+    Receives a list of options, and displays an enumeration of the options on the terminal.
     
     Parameters
     ----------
-        options:list
+        options: List[Any]
             List of options to print on the terminal 
         
         show_exit:bool
@@ -87,7 +88,7 @@ def generate_options(options:list, show_exit:bool=True) -> None:
         print(f"{index+1}. {option}")
 
 
-def error_msg(source:str, value:any) -> None: 
+def error_msg(source: str, value: Any) -> None:
     """ 
     Prints an error message if any inputs hold the incorrect/invalid value.
 
@@ -102,7 +103,7 @@ def error_msg(source:str, value:any) -> None:
     print(f"Invalid {source}. Value: {value}")
 
 
-def prompt(source:str, default:int, min_value:int=None) -> str: 
+def prompt(source: str, default: int, min_value: int = None) -> str:
     """
     Returns a string for input prompt. 
 
@@ -120,10 +121,10 @@ def prompt(source:str, default:int, min_value:int=None) -> str:
     if min_value is None: 
         return f"\n{source} [{default}]: "
     
-    return f"\{source} [>{min_value}, {default}]: "
+    return f"\n{source} [>{min_value}, {default}]: "
 
 
-def get_integer_value(source:str, default:int, min_value:int=None) -> int: 
+def get_integer_value(source: str, default: int, min_value: int = None) -> int:
     """
     Tries to get an integer value as user input. Uses validate_integer_input() to check if input is a valid integer. 
     This is used to get integer values. 
@@ -162,9 +163,16 @@ def get_integer_value(source:str, default:int, min_value:int=None) -> int:
             # AssertionError is raised if input value is less than minimum value 
             print(f"Error: {e}")
 
-def get_string_value(source:str, default:int, valid_values:list=None, show_exit:bool=False, use_str_input:bool=False) -> str: 
+
+def get_string_value(
+        source: str,
+        default: int,
+        valid_values: List[Any] = None,
+        show_exit: bool = False,
+        use_str_input: bool = False) -> Optional[str]:
     """ 
-    Given a list of options, returns a string value from user input depending on input type: str or int. User may input index, or string value. 
+    Given a list of options, returns a string value from user input depending on input type: str or int. User may input
+    index, or string value.
 
     Parameters
     ----------
@@ -174,7 +182,7 @@ def get_string_value(source:str, default:int, valid_values:list=None, show_exit:
         default: int   
             Default integer/index value from options 
         
-        valid_values: list 
+        valid_values: List[Any]
             List of valid values as user options 
         
         show_exit: bool
@@ -209,7 +217,7 @@ def get_string_value(source:str, default:int, valid_values:list=None, show_exit:
                 print("Invalid input. Use index to select file.")
                 continue 
             
-            # Validates string input if use_str_input is enabled 
+            # Validates string input if `use_str_input` is enabled
             val_str = val.strip().lower()
             if val_str not in valid_values:
                 # Continues the loop if string input is not found in valid values. 
@@ -232,7 +240,8 @@ def get_string_value(source:str, default:int, valid_values:list=None, show_exit:
             print(f"Invalid selected value. Try Again.")
             continue 
 
-def cfg_as_dict(path:str) -> dict: 
+
+def cfg_as_dict(path: Union[str, Any]) -> Dict:
     """
     Receives a path for config file (.ini) and returns the config as dictionary. 
 
@@ -245,7 +254,7 @@ def cfg_as_dict(path:str) -> dict:
     if not path.endswith('.ini'):
         raise ValueError("Selected file is not a configuration file. Try again.") 
     
-    cfg=dict()
+    cfg = {}
     with open(path) as f: 
         for line in f: 
             if not line.__contains__('='):
@@ -256,33 +265,32 @@ def cfg_as_dict(path:str) -> dict:
     return cfg
 
 
-def load_module(target_module:str, filename:str, class_name:str):
-        """
-        Loads a module given a filename, and class name. 
+def load_module(target_module: str, filename: str, class_name: str) -> Any:
+    """
+    Loads a module given a filename, and class name.
 
-        Parameters
-        ----------
-            target_module: str 
-                Target path to search for specified classes
-            
-            filename: str 
-                Filename to search for class 
+    Parameters
+    ----------
+        target_module: str
+            Target path to search for specified classes
 
-            class_name: str 
-                Class to search and load
-        """ 
-        
-        spec = importlib.util.find_spec(target_module)
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[filename] = module 
-        spec.loader.exec_module(module)
+        filename: str
+            Filename to search for class
+
+        class_name: str
+            Class to search and load
+    """
+
+    spec = importlib.util.find_spec(target_module)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[filename] = module
+    spec.loader.exec_module(module)
+
+    k = getattr(module, class_name)
+    return k
 
 
-        k = getattr(module, class_name)
-        return k 
-
-
-def get_configuration_files(path:str) -> list: 
+def get_configuration_files(path: str) -> Optional[List[str]]:
     """
     Returns configuration files found in specified path.
 

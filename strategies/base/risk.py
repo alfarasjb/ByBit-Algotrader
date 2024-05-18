@@ -1,5 +1,8 @@
+
+from dataclasses import dataclass
+from typing import Tuple
+
 from templates import Side
-from dataclasses import dataclass 
 
 # Temporary. Migrate to Templates in the future 
 # Load config from .ini 
@@ -13,6 +16,7 @@ class RiskParams:
 class Risk: 
 
     def __init__(self):
+        # Temporary
         self.params = RiskParams(
             quantity=0.001, 
             take_profit=0.012, 
@@ -20,7 +24,7 @@ class Risk:
             leverage=10
         )
 
-    def calculate(self, mark_price:float, side:Side):
+    def calculate(self, mark_price:float, side:Side) -> Tuple[float, float]:
         # Calculate SL TP 
         digits = 2 # Temporary
         if side == Side.BUY: 
@@ -32,4 +36,4 @@ class Risk:
             sl_price = round(mark_price + (mark_price*self.params.stop_loss), digits)
             return tp_price, sl_price
         else:
-            return 0, 0
+            return 0.0, 0.0

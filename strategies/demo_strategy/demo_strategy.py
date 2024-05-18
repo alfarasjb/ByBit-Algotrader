@@ -4,7 +4,15 @@ any trading logic meant for live funds.
 
 
 """
-from ..base import * 
+
+import pandas as pd
+
+from ..base.strategy import Strategy
+from ..base.configs import Configs 
+from templates.side import Side 
+from templates.candles import Candles 
+from configs.trade_cfg import TradeConfig
+
 
 class Demo(Strategy, Configs): 
 
@@ -31,7 +39,7 @@ class Demo(Strategy, Configs):
         return data 
 
 
-    def stage(self, candle: Candles): 
+    def stage(self, candle: Candles) -> bool:
         candles_to_fetch = 5 
         df = self.fetch(candles_to_fetch)
 

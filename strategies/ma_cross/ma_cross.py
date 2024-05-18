@@ -3,14 +3,17 @@ This module contains the main implementation of a generic Moving Average Crossov
 """
 
 
-#from templates import * 
-from templates.indicator import MAType
-from configs import *
-import pandas as pd 
-from enum import Enum
-from ..base import *
+import pandas as pd
 from dataclasses import dataclass
-from backtest import *
+from typing import Tuple
+
+from templates.indicator import MAType
+from templates.side import Side
+from templates.candles import Candles
+from configs.trade_cfg import TradeConfig
+from ..base.configs import Configs
+from ..base.strategy import Strategy
+from backtest.backtest import Backtest
 
 
 @dataclass
@@ -68,7 +71,7 @@ class MACross(Strategy, Configs):
 
 
     # -------------------- Private Methods -------------------- #   
-    def __set_strategy_configs(self, strategy:MACrossConfigs): 
+    def __set_strategy_configs(self, strategy:MACrossConfigs) -> Tuple[int, int, MAType]:
         """
         Validates and sets the strategy configuration given a Config class. 
 
@@ -267,7 +270,7 @@ class MACross(Strategy, Configs):
         return trade_result 
 
     
-    def backtest(self): 
+    def backtest(self) -> None:
         """
         Tests the strategy on historical data, and plots the equity curve. 
         """

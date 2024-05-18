@@ -1,6 +1,8 @@
 from dataclasses import dataclass 
 from templates import intervals
-@dataclass 
+
+
+@dataclass
 class TradeConfig:
     """
     Holds information on trading config
@@ -18,8 +20,8 @@ class TradeConfig:
                 W (week)
                 M (month)
     """
-    symbol:str # Symbol
-    interval:intervals.Timeframes # Interval (See ByBit documentation for valid intervals)
-    channel:str # Channel/Category (See ByBit documentation for valid values)
+    symbol: str  # Symbol
+    interval: intervals.Timeframes  # Interval (See ByBit documentation for valid intervals)
+    channel: str  # Channel/Category (See ByBit documentation for valid values)
 
     
