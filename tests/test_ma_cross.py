@@ -8,7 +8,8 @@ import pandas as pd
 
 from strategies import MACross, MAType
 from configs.trade_cfg import TradeConfig
-from templates import Side, Timeframes
+from templates.side import Side
+from templates.intervals import Timeframes
 from constants import constants
 
 
@@ -41,30 +42,6 @@ class TestMACrossStrategy(unittest.TestCase):
             config=self.trade_config,
             strategy_config=strategy_config
         )
-        
-    def test_side(self) -> None:
-        """
-        Unit tests for the get_side() function
-        """
-        # prices of moving averages
-        # test short 
-        fast_ma = 10.50 
-        slow_ma = 12.50 
-
-        side_result = self.strategy.get_side(fast=fast_ma, slow=slow_ma)
-        self.assertEqual(side_result, Side.SELL)
-
-        # test long 
-        fast_ma = 12.50 
-        slow_ma = 10.50 
-
-        side_result = self.strategy.get_side(fast=fast_ma, slow=slow_ma)
-        self.assertEqual(side_result, Side.BUY)
-
-        # test neutral 
-        fast_ma = slow_ma = 10.50 
-        side_result = self.strategy.get_side(fast=fast_ma, slow=slow_ma)
-        self.assertEqual(side_result, Side.NEUTRAL)
 
     def test_long_crossover(self) -> None:
         """

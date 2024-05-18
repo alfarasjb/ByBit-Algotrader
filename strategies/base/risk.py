@@ -2,29 +2,32 @@
 from dataclasses import dataclass
 from typing import Tuple
 
-from templates import Side
+from templates.side import Side
 
 # Temporary. Migrate to Templates in the future 
-# Load config from .ini 
+# Load config from .ini
+
+
 @dataclass 
 class RiskParams:
-    quantity:int 
-    take_profit:float 
-    stop_loss:float 
-    leverage:int 
+    quantity: float
+    take_profit: float
+    stop_loss: float
+    leverage: int
+
 
 class Risk: 
 
     def __init__(self):
         # Temporary
         self.params = RiskParams(
-            quantity=0.001, 
+            quantity=0.001,
             take_profit=0.012, 
             stop_loss=0.009, 
             leverage=10
         )
 
-    def calculate(self, mark_price:float, side:Side) -> Tuple[float, float]:
+    def calculate(self, mark_price: float, side: Side) -> Tuple[float, float]:
         # Calculate SL TP 
         digits = 2 # Temporary
         if side == Side.BUY: 

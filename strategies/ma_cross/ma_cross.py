@@ -5,7 +5,7 @@ This module contains the main implementation of a generic Moving Average Crossov
 
 import pandas as pd
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Tuple, Union, Optional
 
 from templates.indicator import MAType
 from templates.side import Side
@@ -18,24 +18,24 @@ from backtest.backtest import Backtest
 
 @dataclass
 class MACrossConfigs: 
-    fast_ma_period:int=20 # Period of Fast MA
-    slow_ma_period:int=100 # Period of Slow MA 
-    ma_kind: MAType=MAType.SIMPLE # MAType: Simple/Exponential 
+    fast_ma_period: int = 20  # Period of Fast MA
+    slow_ma_period: int = 100  # Period of Slow MA
+    ma_kind: MAType = MAType.SIMPLE  # MAType: Simple/Exponential
+
 
 class MACross(Strategy, Configs):
     """
     Main class for Moving Average Crossover strategy, and inherits from Strategy base class. 
 
-    Fetches candle data from ByBit, attaching necessary indicator values, given the input strategy configuration, and generates 
-    trading signals accordingly. 
+    Fetches candle data from ByBit, attaching necessary indicator values, given the input strategy configuration, and\
+     generates trading signals accordingly.
 
     Sends a long position if Fast MA crosses over Slow MA, and vice versa. 
     """
     def __init__(
             self, 
-            config:TradeConfig, 
-            strategy_config:dict
-        ):
+            config: TradeConfig,
+            strategy_config: dict):
         """
         Parameter initialization
         
@@ -49,9 +49,8 @@ class MACross(Strategy, Configs):
                 Contains strategy parameters for indicators, etc 
         """
         
-        Strategy.__init__(self,name="MA Crossover",config=config)
+        Strategy.__init__(self, name="MA Crossover", config=config)
         Configs.__init__(self)
-        
 
         # -------------------- Initializing member variables -------------------- #  
         self.strategy = self.check_strategy(strategy_config, MACrossConfigs)
@@ -67,11 +66,12 @@ class MACross(Strategy, Configs):
         self.info()
 
         # ----- Prints Strategy Config ----- # 
-        self.log(f"Strategy: {self.name} Fast MA: {self.fast_ma_period} Slow MA: {self.slow_ma_period} Kind: {self.ma_kind.name}")
+        self.log(f"Strategy: {self.name} Fast MA: {self.fast_ma_period} Slow MA: {self.slow_ma_period} \
+            Kind: {self.ma_kind.name}")
 
+    # -------------------- Private Methods -------------------- #
 
-    # -------------------- Private Methods -------------------- #   
-    def __set_strategy_configs(self, strategy:MACrossConfigs) -> Tuple[int, int, MAType]:
+    def __set_strategy_configs(self, strategy: MACrossConfigs) -> Tuple[int, int, MAType]:
         """
         Validates and sets the strategy configuration given a Config class. 
 
@@ -80,7 +80,8 @@ class MACross(Strategy, Configs):
         Parameters
         ----------
             strategy: MACrossConfigs
-                Config class for this strategy. Contains necessary information to process incoming data and generate trade signals. 
+                Config class for this strategy. Contains necessary information to process incoming data and generate \
+                    trade signals.
         """
         try:
             fast = int(strategy.fast_ma_period)
@@ -99,11 +100,9 @@ class MACross(Strategy, Configs):
         print("Invalid config file. Setting Defaults.")
 
         return self.get_default_strategy_config_values(MACrossConfigs)
-
-
     
     @staticmethod
-    def __select_ma_type(kind:str) -> MAType: 
+    def __select_ma_type(kind: Union[str, MAType]) -> MAType:
         """
         Selects type of Moving Average to use based on string input from config file. 
         
@@ -122,10 +121,8 @@ class MACross(Strategy, Configs):
             return MAType.EXPONENTIAL 
         else:
             raise ValueError(f"Incorrect value for MA Type. Use: SIMPLE or EXPONENTIAL. Input: {kind}")
-        
-    
 
-    def __ma(self, data:pd.Series, length:int) -> pd.Series:
+    def __ma(self, data: pd.Series, length: int) -> pd.Series:
         """ 
         Returns a pandas Series based on specified averaging type, and length. 
 
@@ -143,30 +140,8 @@ class MACross(Strategy, Configs):
             return data.rolling(length).mean()
         if self.ma_kind == MAType.EXPONENTIAL:
             return data.ewm(span=length).mean()
-        
 
-    # Note: This is currently not used 
-    @staticmethod
-    def get_side(fast:float, slow:float) -> Side: 
-        """
-        Determines side based on trade logic, and moving average values. 
-
-        Parameters
-        ----------
-            fast: float 
-                fast moving average 
-            slow: float 
-                slow moving average
-        """
-        
-        if fast > slow: 
-            return Side.BUY 
-        if fast < slow:
-            return Side.SELL 
-        return Side.NEUTRAL
-    
-
-    def crossover(self, data: pd.DataFrame) -> bool: 
+    def crossover(self, data: pd.DataFrame) -> Optional[bool]:
         """
         Determines if MA crossover is present. 
 
@@ -183,8 +158,7 @@ class MACross(Strategy, Configs):
         if last.isna().sum() > 0 or prev.isna().sum() > 0: 
             self.log("Error. Null Values found.")
             return None                    
-        
-        
+
         last_side = last['calculated_side'].item()
         prev_side = prev['calculated_side'].item()
 
@@ -193,10 +167,9 @@ class MACross(Strategy, Configs):
             return None 
         
         # If returns True - Crossover is present, if last side, and previous side are different signals 
-        return last_side != prev_side 
+        return last_side != prev_side
 
-
-    def attach_indicators(self, data:pd.DataFrame) -> pd.DataFrame:
+    def attach_indicators(self, data: pd.DataFrame) -> pd.DataFrame:
         """
         Attaches necessary indicators, and trading signals. 
 
@@ -221,7 +194,6 @@ class MACross(Strategy, Configs):
 
         return data
 
-
     def stage(self, candle: Candles) -> bool:
         """
         Processes main trade logic 
@@ -233,8 +205,7 @@ class MACross(Strategy, Configs):
             candles: Candles 
                 Contains latest ticker information 
         """
-        
-        
+
         # Fetch data to calculate indicators 
         candles_to_fetch = self.slow_ma_period * 2
         df = self.fetch(candles_to_fetch)
@@ -251,7 +222,7 @@ class MACross(Strategy, Configs):
         slow_ma = last['slow_ma'].item()
 
         # Determines side: Long or Short 
-        #side = self.get_side(fast_ma, slow_ma) 
+        # side = self.get_side(fast_ma, slow_ma)
         side = Side.BUY if fast_ma > slow_ma else Side.SELL if fast_ma < slow_ma else Side.NEUTRAL
 
         # General Logging 
@@ -259,7 +230,7 @@ class MACross(Strategy, Configs):
         self.log(info)
 
         trade_result = False 
-        cross = True # Temporary
+        cross = True  # Temporary
         if cross: 
             # Sends trade orders if MA Crossover is found
             self.close_all_open_positions()
@@ -269,7 +240,6 @@ class MACross(Strategy, Configs):
 
         return trade_result 
 
-    
     def backtest(self) -> None:
         """
         Tests the strategy on historical data, and plots the equity curve. 
