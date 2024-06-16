@@ -7,6 +7,7 @@ import pandas as pd
 from dataclasses import dataclass
 from typing import Tuple, Union, Optional
 
+import constants as c
 from templates.indicator import MAType
 from templates.side import Side
 from templates.candles import Candles
@@ -159,8 +160,8 @@ class MACross(Strategy, Configs):
             self.log("Error. Null Values found.")
             return None                    
 
-        last_side = last['calculated_side'].item()
-        prev_side = prev['calculated_side'].item()
+        last_side = last[c.CALCULATED_SIDE].item()
+        prev_side = prev[c.CALCULATED_SIDE].item()
 
         # Returns None if no signal is found 
         if last_side == 0 or prev_side == 0:
@@ -182,15 +183,15 @@ class MACross(Strategy, Configs):
         """
         # Attaches indicators 
         # Determines type of Moving Average depending on user input
-        data['fast_ma'] = self.__ma(data=data['Close'], length=self.fast_ma_period)
-        data['slow_ma'] = self.__ma(data=data['Close'], length=self.slow_ma_period)
+        data[c.FAST_MA] = self.__ma(data=data[c.CLOSE], length=self.fast_ma_period)
+        data[c.SLOW_MA] = self.__ma(data=data[c.CLOSE], length=self.slow_ma_period)
         
         # build side as 1, -1, 0 
-        data['calculated_side'] = 0 
-        long_ma = data['fast_ma'] > data['slow_ma'] 
-        short_ma = data['fast_ma'] < data['slow_ma']
-        data.loc[long_ma, 'calculated_side'] = int(Side.BUY.value)
-        data.loc[short_ma, 'calculated_side'] = int(Side.SELL.value)
+        data[c.CALCULATED_SIDE] = 0
+        long_ma = data[c.FAST_MA] > data[c.SLOW_MA]
+        short_ma = data[c.FAST_MA] < data[c.SLOW_MA]
+        data.loc[long_ma, c.CALCULATED_SIDE] = int(Side.BUY.value)
+        data.loc[short_ma, c.CALCULATED_SIDE] = int(Side.SELL.value)
 
         return data
 
@@ -218,8 +219,8 @@ class MACross(Strategy, Configs):
 
         # Gets last value 
         last = df.iloc[-1]
-        fast_ma = last['fast_ma'].item()
-        slow_ma = last['slow_ma'].item()
+        fast_ma = last[c.FAST_MA].item()
+        slow_ma = last[c.SLOW_MA].item()
 
         # Determines side: Long or Short 
         # side = self.get_side(fast_ma, slow_ma)
